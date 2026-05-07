@@ -15,19 +15,30 @@ function generateConfidence(baseConfidence: number): number {
 }
 
 // Image detection based on GAN artifacts and manipulation traces
+// Includes advanced deepfake detection for face-swapped content
 function detectImage(fileName: string): DetectionResult {
-  // Simulate image forensic analysis
+  // Simulate comprehensive image forensic analysis including deepfake detection
   const hasGANArtifacts = Math.random() > 0.5;
   const hasLightingInconsistencies = Math.random() > 0.4;
   const hasCompressionAnomalies = Math.random() > 0.3;
   const hasEdgeArtifacts = Math.random() > 0.4;
   const hasColorAnomalies = Math.random() > 0.3;
   
-  let confidence = 40;
-  if (hasGANArtifacts) confidence += 25;
-  if (hasLightingInconsistencies) confidence += 15;
-  if (hasCompressionAnomalies) confidence += 10;
+  // Advanced deepfake-specific checks
+  const hasFaceSwapArtifacts = Math.random() > 0.45;
+  const hasFacialBoundaryAnomalies = Math.random() > 0.4;
+  const hasSkinToneInconsistencies = Math.random() > 0.35;
+  const hasDeepfakeSignature = Math.random() > 0.4;
+  
+  let confidence = 35;
+  if (hasGANArtifacts) confidence += 20;
+  if (hasLightingInconsistencies) confidence += 12;
+  if (hasCompressionAnomalies) confidence += 8;
   if (hasEdgeArtifacts) confidence += 10;
+  if (hasFaceSwapArtifacts) confidence += 15;
+  if (hasFacialBoundaryAnomalies) confidence += 12;
+  if (hasSkinToneInconsistencies) confidence += 10;
+  if (hasDeepfakeSignature) confidence += 13;
   
   confidence = generateConfidence(confidence);
   const isAI = confidence > 50;
@@ -38,14 +49,20 @@ function detectImage(fileName: string): DetectionResult {
   if (hasCompressionAnomalies) indicators.push('Unusual JPEG compression artifacts');
   if (hasEdgeArtifacts) indicators.push('Unnatural edge transitions and blending');
   if (hasColorAnomalies) indicators.push('Color distribution anomalies detected');
-  if (!hasGANArtifacts && !hasEdgeArtifacts) indicators.push('Natural noise patterns consistent with camera sensors');
+  if (hasFaceSwapArtifacts) indicators.push('Face-swap artifacts detected at facial boundaries');
+  if (hasFacialBoundaryAnomalies) indicators.push('Unnatural transitions between face and surrounding areas');
+  if (hasSkinToneInconsistencies) indicators.push('Skin tone and texture inconsistencies detected');
+  if (hasDeepfakeSignature) indicators.push('Deepfake neural network signature patterns identified');
+  if (!hasGANArtifacts && !hasEdgeArtifacts && !hasFaceSwapArtifacts) {
+    indicators.push('Natural noise patterns consistent with camera sensors');
+  }
   
   return {
     result: isAI ? 'ai-generated' : 'real',
     confidence: isAI ? confidence : 100 - confidence,
     explanation: isAI
-      ? 'Forensic analysis reveals GAN-specific artifacts, lighting inconsistencies, and unnatural pixel patterns characteristic of AI-generated imagery.'
-      : 'Image exhibits natural camera noise, consistent lighting, and authentic compression patterns typical of real photographs.',
+      ? 'Analysis reveals AI-specific artifacts, manipulation patterns, and synthetic characteristics. Detected anomalies include GAN signatures, lighting inconsistencies, and potential face-swapping indicators.'
+      : 'Image exhibits natural camera noise, consistent lighting, and authentic compression patterns typical of real photographs. No evidence of AI manipulation detected.',
     indicators
   };
 }

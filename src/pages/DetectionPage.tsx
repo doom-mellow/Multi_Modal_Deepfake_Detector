@@ -213,12 +213,12 @@ export default function DetectionPage() {
             <CardHeader>
               <CardTitle>Content Analysis</CardTitle>
               <CardDescription>
-                Select the type of content you want to analyze and submit for forensic detection
+                Select the type of content you want to analyze and submit for AI detection
               </CardDescription>
             </CardHeader>
             <CardContent>
               {isProcessing ? (
-                <ProcessingIndicator message="Performing forensic analysis..." />
+                <ProcessingIndicator message="Performing AI detection analysis..." />
               ) : (
                 <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as MediaType)}>
                   <TabsList className="grid w-full grid-cols-4">

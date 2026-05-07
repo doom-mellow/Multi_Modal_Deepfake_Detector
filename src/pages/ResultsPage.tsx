@@ -92,7 +92,7 @@ export default function ResultsPage() {
                 <div>
                   <CardTitle>Analysis Complete</CardTitle>
                   <CardDescription>
-                    Forensic analysis results for {mediaType} content
+                    AI detection analysis results for {mediaType} content
                   </CardDescription>
                 </div>
                 <ResultBadge result={result.result} confidence={result.confidence} />

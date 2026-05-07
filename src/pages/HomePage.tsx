@@ -10,7 +10,7 @@ export default function HomePage() {
     {
       icon: ImageIcon,
       title: 'Image Detection',
-      description: 'Identify AI-generated or manipulated images using GAN artifact analysis and forensic techniques',
+      description: 'Analyze images for AI manipulation and deepfake content using advanced forensic techniques',
       color: 'text-primary'
     },
     {
@@ -59,7 +59,7 @@ export default function HomePage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Shield className="w-8 h-8 text-primary" />
-              <h1 className="text-2xl font-bold text-foreground">Forensic AI Detection Platform</h1>
+              <h1 className="text-2xl font-bold text-foreground">DeepShield AI</h1>
             </div>
             <Button onClick={() => navigate('/history')} variant="outline">
               View History
@@ -75,7 +75,7 @@ export default function HomePage() {
             Detect AI-Generated Content with Confidence
           </h2>
           <p className="text-lg text-muted-foreground">
-            Professional forensic analysis platform for identifying AI-manipulated videos, audio, and text. 
+            Professional AI detection platform for identifying AI-manipulated images, videos, audio, and text. 
             Powered by advanced detection algorithms and multi-modal analysis techniques.
           </p>
           <Button 
@@ -168,9 +168,19 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="border-t border-border bg-card mt-16">
         <div className="container mx-auto px-4 py-8">
-          <p className="text-center text-sm text-muted-foreground">
-            Forensic AI Detection Platform - Professional content authenticity verification
-          </p>
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-sm text-muted-foreground">
+              DeepShield AI - Professional AI content detection and verification
+            </p>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => navigate('/help')}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              Need Help?
+            </Button>
+          </div>
         </div>
       </footer>
     </div>
