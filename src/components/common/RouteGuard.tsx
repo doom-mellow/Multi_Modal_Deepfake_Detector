@@ -1,27 +1,46 @@
 import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import type { ReactNode } from 'react';
+
 import { useAuth } from '@/contexts/AuthContext';
 import { routes } from '@/routes';
 
 interface RouteGuardProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
-// System-level public routes (no need to register in routes.tsx)
+// Routes that do not require authentication.
 const SYSTEM_PUBLIC_ROUTES = ['/login', '/403', '/404'];
 
-// Derived from routes.tsx: all routes marked with public: true
-const routePublicPaths = routes.filter(r => r.public).map(r => r.path);
+// Routes marked as public in routes.tsx.
+const routePublicPaths = routes
+  .filter((route) => route.public)
+  .map((route) => route.path);
 
-const PUBLIC_ROUTES = [...SYSTEM_PUBLIC_ROUTES, ...routePublicPaths];
+const PUBLIC_ROUTES = [
+  ...SYSTEM_PUBLIC_ROUTES,
+  ...routePublicPaths,
+];
 
-function matchPublicRoute(path: string, patterns: string[]) {
-  return patterns.some(pattern => {
-    if (pattern.includes('*')) {
-      const regex = new RegExp('^' + pattern.replace('*', '.*') + '$');
-      return regex.test(path);
-    }
-    return path === pattern;
+/**
+ * Escapes special regex characters in a route pattern.
+ */
+function escapeRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Checks whether a pathname matches a public route.
+ * Supports wildcard patterns such as /public/*.
+ */
+function matchPublicRoute(path: string, patterns: string[]): boolean {
+  return patterns.some((pattern) => {
+    const regexPattern = pattern
+      .split('*')
+      .map(escapeRegex)
+      .join('.*');
+
+    return new RegExp(`^${regexPattern}$`).test(path);
   });
 }
 
@@ -30,22 +49,48 @@ export function RouteGuard({ children }: RouteGuardProps) {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const isPublic = matchPublicRoute(
+    location.pathname,
+    PUBLIC_ROUTES
+  );
+
   useEffect(() => {
-    if (loading) return;
-
-    const isPublic = matchPublicRoute(location.pathname, PUBLIC_ROUTES);
-
-    if (!user && !isPublic) {
-      navigate('/login', { state: { from: location.pathname }, replace: true });
+    if (loading || user || isPublic) {
+      return;
     }
-  }, [user, loading, location.pathname, navigate]);
+
+    const destination =
+      location.pathname + location.search + location.hash;
+
+    navigate('/login', {
+      state: { from: destination },
+      replace: true,
+    });
+  }, [
+    user,
+    loading,
+    isPublic,
+    location.pathname,
+    location.search,
+    location.hash,
+    navigate,
+  ]);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="flex min-h-screen items-center justify-center">
+        <div
+          className="h-12 w-12 animate-spin rounded-full border-b-2 border-primary"
+          role="status"
+          aria-label="Loading"
+        />
       </div>
     );
+  }
+
+  // Prevent protected page content from flashing before redirection.
+  if (!user && !isPublic) {
+    return null;
   }
 
   return <>{children}</>;

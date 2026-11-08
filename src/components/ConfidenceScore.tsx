@@ -1,70 +1,98 @@
-import { cn } from '@/lib/utils';
+
+import { cn } from "@/lib/utils";
 
 interface ConfidenceScoreProps {
   score: number;
-  size?: 'sm' | 'md' | 'lg';
+  size?: "sm" | "md" | "lg";
   className?: string;
 }
 
-export function ConfidenceScore({ score, size = 'md', className }: ConfidenceScoreProps) {
-  // Determine color based on score
-  const getColor = () => {
-    if (score <= 30) return 'text-success';
-    if (score <= 69) return 'text-warning';
-    return 'text-destructive';
-  };
+const sizes = {
+  sm: {
+    radius: 40,
+    stroke: 6,
+    fontSize: "text-lg",
+    labelSize: "text-xs",
+  },
+  md: {
+    radius: 60,
+    stroke: 8,
+    fontSize: "text-3xl",
+    labelSize: "text-sm",
+  },
+  lg: {
+    radius: 80,
+    stroke: 10,
+    fontSize: "text-5xl",
+    labelSize: "text-base",
+  },
+};
 
-  const getStrokeColor = () => {
-    if (score <= 30) return 'stroke-success';
-    if (score <= 69) return 'stroke-warning';
-    return 'stroke-destructive';
-  };
-
-  const sizes = {
-    sm: { radius: 40, stroke: 6, fontSize: 'text-lg', labelSize: 'text-xs' },
-    md: { radius: 60, stroke: 8, fontSize: 'text-3xl', labelSize: 'text-sm' },
-    lg: { radius: 80, stroke: 10, fontSize: 'text-5xl', labelSize: 'text-base' }
-  };
+export function ConfidenceScore({
+  score,
+  size = "md",
+  className,
+}: ConfidenceScoreProps) {
+  const isValid = Number.isFinite(score);
+  const safeScore = isValid ? Math.min(100, Math.max(0, score)) : 0;
 
   const config = sizes[size];
+  const diameter = (config.radius + config.stroke) * 2;
   const circumference = 2 * Math.PI * config.radius;
-  const offset = circumference - (score / 100) * circumference;
+  const offset = circumference * (1 - safeScore / 100);
 
   return (
-    <div className={cn('flex flex-col items-center gap-2', className)}>
+    <div
+      className={cn("flex flex-col items-center gap-2", className)}
+      role="progressbar"
+      aria-label="Model confidence"
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={isValid ? safeScore : undefined}
+      aria-valuetext={
+        isValid ? `${safeScore.toFixed(1)} percent` : "Unavailable"
+      }
+    >
       <div className="relative">
         <svg
-          width={(config.radius + config.stroke) * 2}
-          height={(config.radius + config.stroke) * 2}
-          className="transform -rotate-90"
+          width={diameter}
+          height={diameter}
+          viewBox={`0 0 ${diameter} ${diameter}`}
+          className="-rotate-90"
+          aria-hidden="true"
         >
-          {/* Background circle */}
           <circle
-            cx={config.radius + config.stroke}
-            cy={config.radius + config.stroke}
+            cx={diameter / 2}
+            cy={diameter / 2}
             r={config.radius}
             fill="none"
             stroke="currentColor"
             strokeWidth={config.stroke}
             className="text-muted"
           />
-          {/* Progress circle */}
+
           <circle
-            cx={config.radius + config.stroke}
-            cy={config.radius + config.stroke}
+            cx={diameter / 2}
+            cy={diameter / 2}
             r={config.radius}
             fill="none"
+            stroke="currentColor"
             strokeWidth={config.stroke}
             strokeDasharray={circumference}
             strokeDashoffset={offset}
             strokeLinecap="round"
-            className={cn('transition-all duration-1000 ease-out', getStrokeColor())}
+            className="text-primary transition-all duration-700 ease-out"
           />
         </svg>
-        {/* Score text */}
+
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className={cn('font-bold', config.fontSize, getColor())}>{score}</span>
-          <span className={cn('text-muted-foreground', config.labelSize)}>Confidence</span>
+          <span className={cn("font-bold", config.fontSize)}>
+            {isValid ? safeScore.toFixed(0) : "--"}
+          </span>
+
+          <span className={cn("text-muted-foreground", config.labelSize)}>
+            Confidence
+          </span>
         </div>
       </div>
     </div>

@@ -1,24 +1,29 @@
-import { HelmetProvider, Helmet } from "react-helmet-async";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { Helmet, HelmetProvider } from 'react-helmet-async';
+import type { ReactNode } from 'react';
 
-const PageMeta = ({
-  title,
-  description,
-}: {
+import { TooltipProvider } from '@/components/ui/tooltip';
+
+interface PageMetaProps {
   title: string;
   description: string;
-}) => (
+}
+
+/**
+ * Sets page-specific document metadata.
+ */
+const PageMeta = ({ title, description }: PageMetaProps) => (
   <Helmet>
     <title>{title}</title>
     <meta name="description" content={description} />
   </Helmet>
 );
 
-export const AppWrapper = ({ children }: { children: React.ReactNode }) => (
+/**
+ * Provides application-wide metadata and tooltip contexts.
+ */
+export const AppWrapper = ({ children }: { children: ReactNode }) => (
   <HelmetProvider>
-    <TooltipProvider>
-      {children}
-    </TooltipProvider>
+    <TooltipProvider>{children}</TooltipProvider>
   </HelmetProvider>
 );
 

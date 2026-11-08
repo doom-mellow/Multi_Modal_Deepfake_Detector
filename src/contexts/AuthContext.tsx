@@ -1,131 +1,160 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-// @ts-ignore
-import { supabase } from '@/db/supabase';
-import type { User } from '@supabase/supabase-js';
-// @ts-ignore
-import type { Profile } from '@/types/types';
-import { toast } from 'sonner';
 
-export async function getProfile(userId: string): Promise<Profile | null> {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', userId)
-    .maybeSingle();
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
+import type { User } from "@supabase/supabase-js";
+import { toast } from "sonner";
 
-  if (error) {
-    console.error('获取用户信息失败:', error);
-    return null;
-  }
-  return data;
-}
+import { supabase } from "@/db/supabase";
+
 interface AuthContextType {
   user: User | null;
-  profile: Profile | null;
   loading: boolean;
-  signInWithUsername: (username: string, password: string) => Promise<{ error: Error | null }>;
-  signUpWithUsername: (username: string, password: string) => Promise<{ error: Error | null }>;
+  signInWithUsername: (
+    username: string,
+    password: string,
+  ) => Promise<{ error: Error | null }>;
+  signUpWithUsername: (
+    username: string,
+    password: string,
+  ) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
-  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+/**
+ * Converts a username into the email address used by Supabase Auth.
+ *
+ * Users can enter either their actual email address or a username.
+ * Username-based authentication requires VITE_AUTH_EMAIL_DOMAIN.
+ */
+function resolveAuthEmail(identifier: string): string {
+  const value = identifier.trim().toLowerCase();
+
+  if (!value) {
+    throw new Error("Please enter your username or email address.");
+  }
+
+  if (value.includes("@")) {
+    return value;
+  }
+
+  const domain = import.meta.env.VITE_AUTH_EMAIL_DOMAIN?.trim();
+
+  if (!domain) {
+    throw new Error(
+      "Username authentication is not configured. Set VITE_AUTH_EMAIL_DOMAIN in your .env file, or sign in using your email address.",
+    );
+  }
+
+  return `${value}@${domain.replace(/^@/, "")}`;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const refreshProfile = async () => {
-    if (!user) {
-      setProfile(null);
-      return;
-    }
-
-    const profileData = await getProfile(user.id);
-    setProfile(profileData);
-  };
-
   useEffect(() => {
-    supabase
-      .auth
-      .getSession()
-      // @ts-ignore
-      .then(({ data: { session } }) => {
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          getProfile(session.user.id).then(setProfile);
-        }
-      })
-      // @ts-ignore
-      .catch(error => {
-        toast.error(`获取用户信息失败: ${error.message}`);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+    let active = true;
 
-    // @ts-ignore
-    // In this function, do NOT use any await calls. Use `.then()` instead to avoid deadlocks.
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!active) return;
+
       setUser(session?.user ?? null);
-      if (session?.user) {
-        getProfile(session.user.id).then(setProfile);
-      } else {
-        setProfile(null);
-      }
+      setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
-  const signInWithUsername = async (username: string, password: string) => {
+  const signInWithUsername = async (
+    username: string,
+    password: string,
+  ): Promise<{ error: Error | null }> => {
     try {
-      const email = `${username}@miaoda.com`;
+      const email = resolveAuthEmail(username);
+
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) throw error;
-      return { error: null };
-    } catch (error) {
-      return { error: error as Error };
+      return { error };
+    } catch (error: unknown) {
+      return {
+        error:
+          error instanceof Error
+            ? error
+            : new Error("Failed to sign in."),
+      };
     }
   };
 
-  const signUpWithUsername = async (username: string, password: string) => {
+  const signUpWithUsername = async (
+    username: string,
+    password: string,
+  ): Promise<{ error: Error | null }> => {
     try {
-      const email = `${username}@miaoda.com`;
+      const email = resolveAuthEmail(username);
+
       const { error } = await supabase.auth.signUp({
         email,
         password,
       });
 
-      if (error) throw error;
-      return { error: null };
-    } catch (error) {
-      return { error: error as Error };
+      return { error };
+    } catch (error: unknown) {
+      return {
+        error:
+          error instanceof Error
+            ? error
+            : new Error("Failed to create account."),
+      };
     }
   };
 
-  const signOut = async () => {
-    await supabase.auth.signOut();
+  const signOut = async (): Promise<void> => {
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      toast.error(error.message);
+      throw error;
+    }
+
     setUser(null);
-    setProfile(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signInWithUsername, signUpWithUsername, signOut, refreshProfile }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        signInWithUsername,
+        signUpWithUsername,
+        signOut,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 }
 
-export function useAuth() {
+export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider.");
   }
+
   return context;
 }

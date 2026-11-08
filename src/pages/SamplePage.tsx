@@ -1,16 +1,22 @@
-/**
- * Sample Page
- */
 
-import PageMeta from "../components/common/PageMeta";
+import PageMeta from '@/components/common/PageMeta';
 
 export default function SamplePage() {
   return (
     <>
-      <PageMeta title="Home" description="Home Page Introduction" />
-      <div>
-        <h3>This is a sample page</h3>
-      </div>
+      <PageMeta
+        title="Sample Page"
+        description="A placeholder page for development."
+      />
+
+      <main className="container mx-auto px-4 py-8">
+        <h1 className="text-2xl font-semibold text-foreground">
+          Sample Page
+        </h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          This page is reserved for development and testing.
+        </p>
+      </main>
     </>
   );
 }

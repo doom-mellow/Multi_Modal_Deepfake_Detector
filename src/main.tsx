@@ -1,9 +1,17 @@
-import { createRoot } from "react-dom/client";
-import "./index.css";
-import App from "./App.tsx";
-import { AppWrapper } from "./components/common/PageMeta.tsx";
+import { createRoot } from 'react-dom/client';
 
-createRoot(document.getElementById("root")!).render(
+import App from './App';
+import './index.css';
+
+import { AppWrapper } from './components/common/PageMeta';
+
+const rootElement = document.getElementById('root');
+
+if (!rootElement) {
+  throw new Error('Root element was not found.');
+}
+
+createRoot(rootElement).render(
   <AppWrapper>
     <App />
   </AppWrapper>

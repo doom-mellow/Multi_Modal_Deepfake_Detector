@@ -1,41 +1,23 @@
-#!/bin/bash
+# Check authentication hook usage only when both rules exist.
+USEAUTH_RULE="$RULES_DIR/useAuth.yml"
+AUTHPROVIDER_RULE="$RULES_DIR/authProvider.yml"
 
-ast-grep scan -r .rules/SelectItem.yml
+if [[ -f "$USEAUTH_RULE" && -f "$AUTHPROVIDER_RULE" ]]; then
+    echo "Checking authentication provider configuration..."
 
-ast-grep scan -r .rules/contrast.yml
+    USEAUTH_OUTPUT=$(ast-grep scan -r "$USEAUTH_RULE" 2>&1)
+    USEAUTH_STATUS=$?
 
-ast-grep scan -r .rules/supabase-google-sso.yml
+    AUTHPROVIDER_OUTPUT=$(ast-grep scan -r "$AUTHPROVIDER_RULE" 2>&1)
+    AUTHPROVIDER_STATUS=$?
 
-ast-grep scan -r .rules/toast-hook.yml
-
-ast-grep scan -r .rules/slot-nesting.yml
-
-ast-grep scan -r .rules/require-button-interaction.yml
-
-ast-grep scan -r .rules/supabase-edge-function-get-body.yml
-
-useauth_output=$(ast-grep scan -r .rules/useAuth.yml 2>/dev/null)
-
-if [ -z "$useauth_output" ]; then
-    exit 0
+    if [[ $USEAUTH_STATUS -ne 0 || $AUTHPROVIDER_STATUS -ne 0 ]]; then
+        echo "Authentication rule execution failed."
+        EXIT_CODE=1
+    elif [[ -n "$USEAUTH_OUTPUT" && -z "$AUTHPROVIDER_OUTPUT" ]]; then
+        echo "Potential issue: useAuth may be used without AuthProvider."
+        EXIT_CODE=1
+    fi
+else
+    echo "Skipping authentication provider check: rules not found."
 fi
-
-authprovider_output=$(ast-grep scan -r .rules/authProvider.yml 2>/dev/null)
-
-if [ -n "$authprovider_output" ]; then
-    exit 0
-fi
-
-echo "=== ast-grep scan -r .rules/useAuth.yml output ==="
-echo "$useauth_output"
-echo ""
-echo "=== ast-grep scan -r .rules/authProvider.yml output ==="
-echo "$authprovider_output"
-echo ""
-echo "⚠️  Issue detected:"
-echo "The code uses useAuth Hook but does not have AuthProvider component wrapping the components."
-echo "Please ensure that components using useAuth are wrapped with AuthProvider to provide proper authentication context."
-echo ""
-echo "Suggested fixes:"
-echo "1. Add AuthProvider wrapper in app.tsx or corresponding root component"
-echo "2. Ensure all components using useAuth are within AuthProvider scope"

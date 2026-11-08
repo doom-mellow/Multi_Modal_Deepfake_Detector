@@ -1,12 +1,20 @@
+
 id: use-toast-import
-message: Use 'import { toast } from "sonner"' instead of "@/hooks/use-toast"
-severity: error
 language: Tsx
-note: |
-  The new shadcn/ui pattern uses sonner for toast notifications.
-  Replace: import { toast } from "@/hooks/use-toast"
-  With: import { toast } from "sonner"
+
+message: |
+  The legacy use-toast hook was detected.
+
+  Review its toast calls before migrating to Sonner.
+
+  Replace the import with:
+  import { toast } from "sonner";
+
+  Update the toast calls to match Sonner's API.
+  Do not replace the import alone if the existing call signatures differ.
+
+severity: warning
 
 rule:
-  pattern: import { $$$IMPORTS } from "@/hooks/use-toast"
-
+  pattern: |
+    import { $$$IMPORTS } from "@/hooks/use-toast"

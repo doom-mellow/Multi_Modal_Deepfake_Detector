@@ -1,6 +1,8 @@
 {
   "files": {
-    "includes": ["src/**/*.{js,jsx,ts,tsx}"]
+    "includes": [
+      "src/**/*.{js,jsx,ts,tsx}"
+    ]
   },
   "linter": {
     "enabled": true,

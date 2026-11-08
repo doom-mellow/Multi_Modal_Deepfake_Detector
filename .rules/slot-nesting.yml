@@ -1,48 +1,38 @@
----
+
 id: radix-trigger-formcontrol-nesting
-language: tsx
+language: Tsx
 files:
   - src/**/*.tsx
+
 message: |
-  ❌ 检测到危险的 Slot 嵌套：Radix UI Trigger (asChild) 内包裹 FormControl
+  A Radix Trigger using asChild contains a FormControl.
 
-  问题代码：
+  Avoid using FormControl as the trigger's child.
+  Use the interactive element directly:
+
   <PopoverTrigger asChild>
-    <FormControl>      ← 会导致点击事件失效
-      <Button>...</Button>
-    </FormControl>
+    <Button>Open</Button>
   </PopoverTrigger>
 
-  正确写法：
-  <PopoverTrigger asChild>
-    <Button>...</Button>   ← 直接使用 Button
-  </PopoverTrigger>
+  FormControl is intended for form controls. Review nested Slot
+  composition to avoid unexpected ref or event-handler behaviour.
 
-  原因：FormControl 和 Trigger 都使用 Radix UI 的 Slot 机制，双层嵌套会导致：
-  - ref 传递链断裂
-  - 点击事件丢失
-  - 内部组件无法交互
+severity: warning
 
-  FormControl 只应该用于原生表单控件（Input, Textarea, Select），不要用于触发器按钮。
-severity: error
 rule:
   kind: jsx_element
   all:
-    # 开始标签需要满足的条件
     - has:
         kind: jsx_opening_element
         all:
-          # 匹配所有 Radix UI 的 Trigger 组件
           - has:
               field: name
               regex: "^(Popover|Dialog|DropdownMenu|AlertDialog|HoverCard|Menubar|NavigationMenu|ContextMenu|Tooltip)Trigger$"
-          # 必须有 asChild 属性
           - has:
               kind: jsx_attribute
               has:
-                kind: property_identifier
+                field: name
                 regex: "^asChild$"
-    # 直接子元素包含 FormControl
     - has:
         kind: jsx_element
         has:

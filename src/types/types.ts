@@ -1,18 +1,67 @@
-// Media types supported by the detection platform
-export type MediaType = 'image' | 'video' | 'audio' | 'text';
+export type MediaType =
+  | "image"
+  | "video"
+  | "audio"
+  | "text"
+  | "code"
+  | "embedding"
+  | "watermark";
 
-// Detection result types
-export type DetectionResultType = 'real' | 'ai-generated';
+export type DetectionResultType = "real" | "ai-generated";
 
-// Detection result interface
+export interface CodeBreakdown {
+  language: string;
+  authorshipProbability: number;
+  astEntropy: number;
+  tokenPerplexity: number;
+  syntheticBoilerplateDetected: boolean;
+  patternsFound: string[];
+  styleConsistency: number;
+  commentRatio: number;
+}
+
+export interface EmbeddingBreakdown {
+  modelArchitecture: string;
+  cosineSimilarity: number;
+  nearestCluster: string;
+  euclideanDistance: number;
+  outlierScore: number;
+  isLatentOutlier: boolean;
+  featureDimension: number;
+  clusterDistributions: {
+    cluster: string;
+    similarity: number;
+    color: string;
+  }[];
+}
+
+export interface WatermarkBreakdown {
+  watermarkDetected: boolean;
+  watermarkType: string | null;
+  confidenceLevel: number;
+  c2paManifestPresent: boolean;
+  c2paSignatureValid: boolean;
+  issuerOrg: string | null;
+  tamperingDetected: boolean;
+  provenanceChain: {
+    action: string;
+    actor: string;
+    timestamp: string;
+    software: string;
+    valid: boolean;
+  }[];
+}
+
 export interface DetectionResult {
   result: DetectionResultType;
   confidence: number;
   explanation: string;
   indicators: string[];
+  codeBreakdown?: CodeBreakdown;
+  embeddingBreakdown?: EmbeddingBreakdown;
+  watermarkBreakdown?: WatermarkBreakdown;
 }
 
-// History record from database
 export interface HistoryRecord {
   id: string;
   media_type: MediaType;
@@ -20,28 +69,32 @@ export interface HistoryRecord {
   confidence: number;
   content_preview: string | null;
   file_name: string | null;
+  metadata?: Record<string, unknown> | null;
   created_at: string;
 }
 
-// Detection request interface
 export interface DetectionRequest {
   mediaType: MediaType;
   content?: string;
   file?: File;
   url?: string;
+  languageHint?: string;
+  embeddingModel?: string;
 }
 
-// Badge variant based on confidence score
-export type BadgeVariant = 'success' | 'warning' | 'destructive';
+export type BadgeVariant = "success" | "warning" | "destructive";
 
 export function getBadgeVariant(confidence: number): BadgeVariant {
-  if (confidence <= 30) return 'success';
-  if (confidence <= 69) return 'warning';
-  return 'destructive';
+  if (confidence <= 30) return "success";
+  if (confidence <= 69) return "warning";
+  return "destructive";
 }
 
-export function getBadgeLabel(result: DetectionResultType, confidence: number): string {
-  if (confidence <= 30) return 'Real Content';
-  if (confidence <= 69) return 'Uncertain';
-  return 'AI-Generated';
+export function getBadgeLabel(
+  result: DetectionResultType,
+  confidence: number,
+): string {
+  if (confidence <= 30) return "Low confidence";
+  if (confidence <= 69) return "Inconclusive";
+  return result === "ai-generated" ? "AI-generated" : "Authentic";
 }

@@ -1,378 +1,675 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { FileUploadZone } from '@/components/FileUploadZone';
 import { ProcessingIndicator } from '@/components/ProcessingIndicator';
-import { Shield, ArrowLeft } from 'lucide-react';
-import { performDetection, validateFile, validateUrl } from '@/services/detectionService';
-import type { MediaType } from '@/types/types';
+import {
+  Code2,
+  Cpu,
+  Fingerprint,
+  Image as ImageIcon,
+  Video,
+  Mic,
+  FileText,
+} from 'lucide-react';
+import {
+  performDetection,
+  validateFile,
+  validateUrl,
+} from '@/services/detectionService';
+import type { DetectionRequest, MediaType } from '@/types/types';
 import { toast } from 'sonner';
+
+interface ResultMetadata {
+  fileName?: string | null;
+  contentPreview?: string | null;
+}
 
 export default function DetectionPage() {
   const navigate = useNavigate();
+
   const [activeTab, setActiveTab] = useState<MediaType>('image');
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Image state
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageUrl, setImageUrl] = useState('');
 
-  // Video state
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoUrl, setVideoUrl] = useState('');
 
-  // Audio state
   const [audioFile, setAudioFile] = useState<File | null>(null);
 
-  // Text state
   const [textContent, setTextContent] = useState('');
 
-  const handleImageDetection = async () => {
-    if (!imageFile && !imageUrl) {
-      toast.error('Please upload an image file or enter a URL');
+  const [codeContent, setCodeContent] = useState('');
+  const [codeFile, setCodeFile] = useState<File | null>(null);
+  const [languageHint, setLanguageHint] = useState('auto');
+
+  const [embeddingFile, setEmbeddingFile] = useState<File | null>(null);
+  const [embeddingText, setEmbeddingText] = useState('');
+
+  const [watermarkFile, setWatermarkFile] = useState<File | null>(null);
+  const [watermarkUrl, setWatermarkUrl] = useState('');
+
+  const runAnalysis = async (
+    request: DetectionRequest,
+    metadata: ResultMetadata = {},
+  ) => {
+    if (isProcessing) return;
+
+    setIsProcessing(true);
+
+    try {
+      const result = await performDetection(request);
+
+      navigate('/results', {
+        state: {
+          mediaType: request.mediaType,
+          result,
+          fileName: metadata.fileName ?? request.file?.name ?? request.url ?? null,
+          contentPreview: metadata.contentPreview ?? null,
+        },
+      });
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : 'Analysis failed. Please try again.',
+      );
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const validateUploadedFile = (
+    file: File,
+    mediaType: 'image' | 'video' | 'audio',
+  ) => {
+    const validation = validateFile(file, mediaType);
+
+    if (!validation.valid) {
+      toast.error(validation.error || 'The selected file is not supported.');
+      return false;
+    }
+
+    return true;
+  };
+
+  const validateAssetUrl = (url: string) => {
+    const validation = validateUrl(url.trim());
+
+    if (!validation.valid) {
+      toast.error(validation.error || 'Please enter a valid URL.');
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleImageDetection = () => {
+    if (imageFile && imageUrl.trim()) {
+      toast.error('Choose an image file or a URL, not both.');
+      return;
+    }
+
+    if (!imageFile && !imageUrl.trim()) {
+      toast.error('Upload an image or enter an image URL.');
       return;
     }
 
     if (imageFile) {
-      const validation = validateFile(imageFile, 'image');
-      if (!validation.valid) {
-        toast.error(validation.error);
-        return;
-      }
+      if (!validateUploadedFile(imageFile, 'image')) return;
+
+      void runAnalysis(
+        { mediaType: 'image', file: imageFile },
+        { fileName: imageFile.name, contentPreview: imageFile.name },
+      );
+      return;
     }
 
-    if (imageUrl) {
-      const validation = validateUrl(imageUrl);
-      if (!validation.valid) {
-        toast.error(validation.error);
-        return;
-      }
-    }
+    if (!validateAssetUrl(imageUrl)) return;
 
-    setIsProcessing(true);
-    try {
-      const result = await performDetection({
-        mediaType: 'image',
-        file: imageFile || undefined,
-        url: imageUrl || undefined
-      });
-
-      navigate('/results', {
-        state: {
-          mediaType: 'image',
-          result,
-          fileName: imageFile?.name || imageUrl,
-          contentPreview: imageUrl || imageFile?.name || null
-        }
-      });
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Analysis failed, please try again later');
-    } finally {
-      setIsProcessing(false);
-    }
+    void runAnalysis(
+      { mediaType: 'image', url: imageUrl.trim() },
+      { fileName: imageUrl.trim(), contentPreview: imageUrl.trim() },
+    );
   };
 
-  const handleVideoDetection = async () => {
-    if (!videoFile && !videoUrl) {
-      toast.error('Please upload a video file or enter a URL');
+  const handleVideoDetection = () => {
+    if (videoFile && videoUrl.trim()) {
+      toast.error('Choose a video file or a URL, not both.');
+      return;
+    }
+
+    if (!videoFile && !videoUrl.trim()) {
+      toast.error('Upload a video or enter a video URL.');
       return;
     }
 
     if (videoFile) {
-      const validation = validateFile(videoFile, 'video');
-      if (!validation.valid) {
-        toast.error(validation.error);
-        return;
-      }
+      if (!validateUploadedFile(videoFile, 'video')) return;
+
+      void runAnalysis(
+        { mediaType: 'video', file: videoFile },
+        { fileName: videoFile.name, contentPreview: videoFile.name },
+      );
+      return;
     }
 
-    if (videoUrl) {
-      const validation = validateUrl(videoUrl);
-      if (!validation.valid) {
-        toast.error(validation.error);
-        return;
-      }
-    }
+    if (!validateAssetUrl(videoUrl)) return;
 
-    setIsProcessing(true);
-    try {
-      const result = await performDetection({
-        mediaType: 'video',
-        file: videoFile || undefined,
-        url: videoUrl || undefined
-      });
-
-      navigate('/results', {
-        state: {
-          mediaType: 'video',
-          result,
-          fileName: videoFile?.name || videoUrl,
-          contentPreview: videoUrl || videoFile?.name || null
-        }
-      });
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Analysis failed, please try again later');
-    } finally {
-      setIsProcessing(false);
-    }
+    void runAnalysis(
+      { mediaType: 'video', url: videoUrl.trim() },
+      { fileName: videoUrl.trim(), contentPreview: videoUrl.trim() },
+    );
   };
 
-  const handleAudioDetection = async () => {
+  const handleAudioDetection = () => {
     if (!audioFile) {
-      toast.error('Please upload an audio file');
+      toast.error('Please upload an audio file.');
       return;
     }
 
-    const validation = validateFile(audioFile, 'audio');
-    if (!validation.valid) {
-      toast.error(validation.error);
-      return;
-    }
+    if (!validateUploadedFile(audioFile, 'audio')) return;
 
-    setIsProcessing(true);
-    try {
-      const result = await performDetection({
-        mediaType: 'audio',
-        file: audioFile
-      });
-
-      navigate('/results', {
-        state: {
-          mediaType: 'audio',
-          result,
-          fileName: audioFile.name,
-          contentPreview: audioFile.name
-        }
-      });
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Analysis failed, please try again later');
-    } finally {
-      setIsProcessing(false);
-    }
+    void runAnalysis(
+      { mediaType: 'audio', file: audioFile },
+      { fileName: audioFile.name, contentPreview: audioFile.name },
+    );
   };
 
-  const handleTextDetection = async () => {
-    if (!textContent.trim()) {
-      toast.error('Please enter text content');
+  const handleTextDetection = () => {
+    const content = textContent.trim();
+
+    if (!content) {
+      toast.error('Please enter text to analyze.');
       return;
     }
 
-    if (textContent.length > 10000) {
-      toast.error('Text exceeds maximum length of 10,000 characters');
+    if (content.length > 10000) {
+      toast.error('Text cannot exceed 10,000 characters.');
       return;
     }
 
-    setIsProcessing(true);
-    try {
-      const result = await performDetection({
-        mediaType: 'text',
-        content: textContent
-      });
+    void runAnalysis(
+      { mediaType: 'text', content },
+      { contentPreview: content.slice(0, 200) },
+    );
+  };
 
-      navigate('/results', {
-        state: {
-          mediaType: 'text',
-          result,
-          contentPreview: textContent.substring(0, 200)
-        }
-      });
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Analysis failed, please try again later');
-    } finally {
-      setIsProcessing(false);
+  const handleCodeFileSelect = (file: File | null) => {
+    setCodeFile(file);
+
+    if (!file) {
+      setCodeContent('');
+      return;
     }
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      if (typeof reader.result !== 'string') {
+        toast.error('Could not read the selected source file.');
+        setCodeFile(null);
+        return;
+      }
+
+      setCodeContent(reader.result);
+      toast.success(`Loaded ${file.name}`);
+    };
+
+    reader.onerror = () => {
+      toast.error('Could not read the selected source file.');
+      setCodeFile(null);
+    };
+
+    reader.readAsText(file);
+  };
+
+  const handleCodeDetection = () => {
+    const content = codeContent.trim();
+
+    if (!content) {
+      toast.error('Upload a source file or paste source code.');
+      return;
+    }
+
+    void runAnalysis(
+      {
+        mediaType: 'code',
+        content,
+        file: codeFile || undefined,
+        languageHint: languageHint !== 'auto' ? languageHint : undefined,
+      },
+      {
+        fileName: codeFile?.name ?? 'source_snippet',
+        contentPreview: content.slice(0, 200),
+      },
+    );
+  };
+
+  const handleEmbeddingDetection = () => {
+    if (!embeddingFile && !embeddingText.trim()) {
+      toast.error('Upload an asset or enter representation text.');
+      return;
+    }
+
+    void runAnalysis(
+      {
+        mediaType: 'embedding',
+        content: embeddingText.trim() || undefined,
+        file: embeddingFile || undefined,
+        embeddingModel: 'auto',
+      },
+      {
+        fileName: embeddingFile?.name ?? 'embedding_input',
+        contentPreview: embeddingText.trim()
+          ? embeddingText.trim().slice(0, 200)
+          : embeddingFile?.name ?? null,
+      },
+    );
+  };
+
+  const handleWatermarkDetection = () => {
+    if (watermarkFile && watermarkUrl.trim()) {
+      toast.error('Choose an asset file or a URL, not both.');
+      return;
+    }
+
+    if (!watermarkFile && !watermarkUrl.trim()) {
+      toast.error('Upload an asset or enter its URL.');
+      return;
+    }
+
+    if (watermarkFile) {
+      void runAnalysis(
+        { mediaType: 'watermark', file: watermarkFile },
+        {
+          fileName: watermarkFile.name,
+          contentPreview: watermarkFile.name,
+        },
+      );
+      return;
+    }
+
+    if (!validateAssetUrl(watermarkUrl)) return;
+
+    void runAnalysis(
+      { mediaType: 'watermark', url: watermarkUrl.trim() },
+      {
+        fileName: watermarkUrl.trim(),
+        contentPreview: watermarkUrl.trim(),
+      },
+    );
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Shield className="w-8 h-8 text-primary" />
-              <h1 className="text-2xl font-bold text-foreground">Detection Analysis</h1>
-            </div>
-            <Button onClick={() => navigate('/')} variant="outline">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Home
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-background text-foreground transition-colors">
+      <main className="container mx-auto px-4 py-8">
+        <div className="mx-auto max-w-4xl">
           <Card>
             <CardHeader>
               <CardTitle>Content Analysis</CardTitle>
               <CardDescription>
-                Select the type of content you want to analyze and submit for AI detection
+                Choose the type of content you want to examine. Available
+                findings depend on the analysis tools configured for each
+                category.
               </CardDescription>
             </CardHeader>
+
             <CardContent>
               {isProcessing ? (
-                <ProcessingIndicator message="Performing AI detection analysis..." />
+                <ProcessingIndicator message="Analyzing submitted content..." />
               ) : (
-                <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as MediaType)}>
-                  <TabsList className="grid w-full grid-cols-4">
-                    <TabsTrigger value="image">Image</TabsTrigger>
-                    <TabsTrigger value="video">Video</TabsTrigger>
-                    <TabsTrigger value="audio">Audio</TabsTrigger>
-                    <TabsTrigger value="text">Text</TabsTrigger>
+                <Tabs
+                  value={activeTab}
+                  onValueChange={(value) => setActiveTab(value as MediaType)}
+                >
+                  <TabsList className="grid h-auto w-full grid-cols-2 gap-1 bg-muted/60 p-1 sm:grid-cols-4 md:grid-cols-7">
+                    <TabsTrigger value="image" className="flex items-center gap-1.5 py-2">
+                      <ImageIcon className="h-3.5 w-3.5" />
+                      Image
+                    </TabsTrigger>
+                    <TabsTrigger value="video" className="flex items-center gap-1.5 py-2">
+                      <Video className="h-3.5 w-3.5" />
+                      Video
+                    </TabsTrigger>
+                    <TabsTrigger value="audio" className="flex items-center gap-1.5 py-2">
+                      <Mic className="h-3.5 w-3.5" />
+                      Audio
+                    </TabsTrigger>
+                    <TabsTrigger value="text" className="flex items-center gap-1.5 py-2">
+                      <FileText className="h-3.5 w-3.5" />
+                      Text
+                    </TabsTrigger>
+                    <TabsTrigger value="code" className="flex items-center gap-1.5 py-2">
+                      <Code2 className="h-3.5 w-3.5" />
+                      Code
+                    </TabsTrigger>
+                    <TabsTrigger value="embedding" className="flex items-center gap-1.5 py-2">
+                      <Cpu className="h-3.5 w-3.5" />
+                      Embedding
+                    </TabsTrigger>
+                    <TabsTrigger value="watermark" className="flex items-center gap-1.5 py-2">
+                      <Fingerprint className="h-3.5 w-3.5" />
+                      Watermark
+                    </TabsTrigger>
                   </TabsList>
 
-                  {/* Image Detection */}
-                  <TabsContent value="image" className="space-y-4">
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label>Upload Image File</Label>
-                        <FileUploadZone
-                          onFileSelect={setImageFile}
-                          accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
-                        />
-                        <p className="text-xs text-muted-foreground">
-                          Supported formats: JPG, JPEG, PNG, GIF, WebP
-                        </p>
-                      </div>
-
-                      <div className="relative">
-                        <div className="absolute inset-0 flex items-center">
-                          <span className="w-full border-t border-border" />
-                        </div>
-                        <div className="relative flex justify-center text-xs uppercase">
-                          <span className="bg-card px-2 text-muted-foreground">Or</span>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="image-url">Image URL</Label>
-                        <Input
-                          id="image-url"
-                          type="url"
-                          placeholder="https://example.com/image.jpg"
-                          value={imageUrl}
-                          onChange={(e) => setImageUrl(e.target.value)}
-                        />
-                      </div>
-
-                      <Button 
-                        onClick={handleImageDetection} 
-                        className="w-full"
-                        disabled={!imageFile && !imageUrl}
-                      >
-                        Analyze Image
-                      </Button>
+                  <TabsContent value="image" className="space-y-4 pt-4">
+                    <div className="space-y-2">
+                      <Label>Upload image</Label>
+                      <FileUploadZone
+                        onFileSelect={(file) => {
+                          setImageFile(file);
+                          if (file) setImageUrl('');
+                        }}
+                        accept="image/jpeg,image/png,image/gif,image/webp"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Supported formats: JPG, PNG, GIF, WebP.
+                      </p>
                     </div>
+
+                    <div className="text-center text-xs text-muted-foreground">OR</div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="image-url">Image URL</Label>
+                      <Input
+                        id="image-url"
+                        type="url"
+                        placeholder="https://example.com/image.jpg"
+                        value={imageUrl}
+                        onChange={(event) => {
+                          setImageUrl(event.target.value);
+                          if (event.target.value) setImageFile(null);
+                        }}
+                      />
+                    </div>
+
+                    <Button
+                      className="w-full"
+                      onClick={handleImageDetection}
+                      disabled={!imageFile && !imageUrl.trim()}
+                    >
+                      Analyze Image
+                    </Button>
                   </TabsContent>
 
-                  {/* Video Detection */}
-                  <TabsContent value="video" className="space-y-4">
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label>Upload Video File</Label>
-                        <FileUploadZone
-                          onFileSelect={setVideoFile}
-                          accept="video/mp4,video/avi,video/quicktime,video/webm"
-                        />
-                        <p className="text-xs text-muted-foreground">
-                          Supported formats: MP4, AVI, MOV, WebM
-                        </p>
-                      </div>
-
-                      <div className="relative">
-                        <div className="absolute inset-0 flex items-center">
-                          <span className="w-full border-t border-border" />
-                        </div>
-                        <div className="relative flex justify-center text-xs uppercase">
-                          <span className="bg-card px-2 text-muted-foreground">Or</span>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="video-url">Video URL</Label>
-                        <Input
-                          id="video-url"
-                          type="url"
-                          placeholder="https://example.com/video.mp4"
-                          value={videoUrl}
-                          onChange={(e) => setVideoUrl(e.target.value)}
-                        />
-                      </div>
-
-                      <Button 
-                        onClick={handleVideoDetection} 
-                        className="w-full"
-                        disabled={!videoFile && !videoUrl}
-                      >
-                        Analyze Video
-                      </Button>
+                  <TabsContent value="video" className="space-y-4 pt-4">
+                    <div className="space-y-2">
+                      <Label>Upload video</Label>
+                      <FileUploadZone
+                        onFileSelect={(file) => {
+                          setVideoFile(file);
+                          if (file) setVideoUrl('');
+                        }}
+                        accept="video/mp4,video/avi,video/quicktime,video/webm"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Supported formats: MP4, AVI, MOV, WebM.
+                      </p>
                     </div>
+
+                    <div className="text-center text-xs text-muted-foreground">OR</div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="video-url">Video URL</Label>
+                      <Input
+                        id="video-url"
+                        type="url"
+                        placeholder="https://example.com/video.mp4"
+                        value={videoUrl}
+                        onChange={(event) => {
+                          setVideoUrl(event.target.value);
+                          if (event.target.value) setVideoFile(null);
+                        }}
+                      />
+                    </div>
+
+                    <Button
+                      className="w-full"
+                      onClick={handleVideoDetection}
+                      disabled={!videoFile && !videoUrl.trim()}
+                    >
+                      Analyze Video
+                    </Button>
                   </TabsContent>
 
-                  {/* Audio Detection */}
-                  <TabsContent value="audio" className="space-y-4">
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label>Upload Audio File</Label>
-                        <FileUploadZone
-                          onFileSelect={setAudioFile}
-                          accept="audio/mpeg,audio/wav,audio/mp4,audio/ogg"
-                        />
-                        <p className="text-xs text-muted-foreground">
-                          Supported formats: MP3, WAV, M4A, OGG
-                        </p>
-                      </div>
-
-                      <Button 
-                        onClick={handleAudioDetection} 
-                        className="w-full"
-                        disabled={!audioFile}
-                      >
-                        Analyze Audio
-                      </Button>
+                  <TabsContent value="audio" className="space-y-4 pt-4">
+                    <div className="space-y-2">
+                      <Label>Upload audio</Label>
+                      <FileUploadZone
+                        onFileSelect={setAudioFile}
+                        accept="audio/mpeg,audio/wav,audio/mp4,audio/ogg"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Supported formats: MP3, WAV, M4A, OGG.
+                      </p>
                     </div>
+
+                    <Button
+                      className="w-full"
+                      onClick={handleAudioDetection}
+                      disabled={!audioFile}
+                    >
+                      Analyze Audio
+                    </Button>
                   </TabsContent>
 
-                  {/* Text Detection */}
-                  <TabsContent value="text" className="space-y-4">
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="text-content">Text Content</Label>
-                        <Textarea
-                          id="text-content"
-                          placeholder="Paste or type the text content you want to analyze..."
-                          value={textContent}
-                          onChange={(e) => setTextContent(e.target.value)}
-                          rows={10}
-                          maxLength={10000}
-                        />
-                        <p className="text-xs text-muted-foreground text-right">
-                          {textContent.length} / 10,000 characters
+                  <TabsContent value="text" className="space-y-4 pt-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="text-content">Text content</Label>
+                      <Textarea
+                        id="text-content"
+                        placeholder="Paste or type the text you want to analyze..."
+                        value={textContent}
+                        onChange={(event) => setTextContent(event.target.value)}
+                        rows={10}
+                        maxLength={10000}
+                      />
+                      <p className="text-right text-xs text-muted-foreground">
+                        {textContent.length.toLocaleString()} / 10,000 characters
+                      </p>
+                    </div>
+
+                    <Button
+                      className="w-full"
+                      onClick={handleTextDetection}
+                      disabled={!textContent.trim()}
+                    >
+                      Analyze Text
+                    </Button>
+                  </TabsContent>
+
+                  <TabsContent value="code" className="space-y-4 pt-4">
+                    <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+                      <div>
+                        <Label className="text-base font-semibold">Source code</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Upload a source file or paste code below.
                         </p>
                       </div>
 
-                      <Button 
-                        onClick={handleTextDetection} 
-                        className="w-full"
-                        disabled={!textContent.trim()}
-                      >
-                        Analyze Text
-                      </Button>
+                      <div className="w-full sm:w-48">
+                        <Label
+                          htmlFor="language-hint"
+                          className="mb-1 block text-xs text-muted-foreground"
+                        >
+                          Language
+                        </Label>
+                        <select
+                          id="language-hint"
+                          value={languageHint}
+                          onChange={(event) => setLanguageHint(event.target.value)}
+                          className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                        >
+                          <option value="auto">Auto-detect</option>
+                          <option value="python">Python</option>
+                          <option value="typescript">TypeScript</option>
+                          <option value="javascript">JavaScript</option>
+                          <option value="cpp">C / C++</option>
+                          <option value="java">Java</option>
+                          <option value="go">Go</option>
+                          <option value="rust">Rust</option>
+                        </select>
+                      </div>
                     </div>
+
+                    <FileUploadZone
+                      onFileSelect={handleCodeFileSelect}
+                      accept=".py,.js,.ts,.tsx,.jsx,.java,.cpp,.c,.go,.rs,.rb,.php,.cs,.txt"
+                    />
+
+                    <div className="text-center text-xs text-muted-foreground">
+                      OR PASTE SOURCE CODE
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="code-content">Code content</Label>
+                      <Textarea
+                        id="code-content"
+                        placeholder="Paste source code here..."
+                        value={codeContent}
+                        onChange={(event) => {
+                          setCodeContent(event.target.value);
+                          setCodeFile(null);
+                        }}
+                        rows={12}
+                        className="font-mono text-xs leading-relaxed"
+                      />
+                      <p className="text-right text-xs text-muted-foreground">
+                        {codeContent.split('\n').length} lines · {codeContent.length} characters
+                      </p>
+                    </div>
+
+                    <Button
+                      className="w-full"
+                      onClick={handleCodeDetection}
+                      disabled={!codeContent.trim()}
+                    >
+                      Analyze Code
+                    </Button>
+                  </TabsContent>
+
+                  <TabsContent value="embedding" className="space-y-4 pt-4">
+                    <div className="rounded-md border border-border bg-muted/30 p-3">
+                      <div className="mb-1 flex items-center gap-2">
+                        <Cpu className="h-4 w-4 text-primary" />
+                        <span className="text-sm font-semibold">
+                          Embedding Analysis
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Submit an asset or an existing representation for
+                        analysis. The available checks depend on the embedding
+                        extraction and comparison methods configured by the backend.
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Upload an asset or representation file</Label>
+                      <FileUploadZone
+                        onFileSelect={setEmbeddingFile}
+                        accept="image/*,video/*,audio/*,text/plain,application/json,.npy,.npz,.pt,.pth"
+                      />
+                    </div>
+
+                    <div className="text-center text-xs text-muted-foreground">
+                      OR ENTER REPRESENTATION DATA
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="embedding-text">
+                        Text or vector representation
+                      </Label>
+                      <Textarea
+                        id="embedding-text"
+                        placeholder="Enter text or an existing vector representation..."
+                        value={embeddingText}
+                        onChange={(event) => setEmbeddingText(event.target.value)}
+                        rows={5}
+                      />
+                    </div>
+
+                    <Button
+                      className="w-full"
+                      onClick={handleEmbeddingDetection}
+                      disabled={!embeddingFile && !embeddingText.trim()}
+                    >
+                      Analyze Representation
+                    </Button>
+                  </TabsContent>
+
+                  <TabsContent value="watermark" className="space-y-4 pt-4">
+                    <div className="rounded-md border border-border bg-muted/30 p-3">
+                      <div className="mb-1 flex items-center gap-2">
+                        <Fingerprint className="h-4 w-4 text-primary" />
+                        <span className="text-sm font-semibold">
+                          Watermark and Provenance Checks
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Submit an asset to check for supported watermark signals,
+                        embedded metadata, or provenance records. Not every
+                        watermark format or provenance standard is detectable.
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Upload an asset</Label>
+                      <FileUploadZone
+                        onFileSelect={(file) => {
+                          setWatermarkFile(file);
+                          if (file) setWatermarkUrl('');
+                        }}
+                        accept="image/jpeg,image/png,image/webp,video/mp4,audio/wav,audio/mpeg,application/pdf"
+                      />
+                    </div>
+
+                    <div className="text-center text-xs text-muted-foreground">
+                      OR ENTER AN ASSET URL
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="watermark-url">Asset URL</Label>
+                      <Input
+                        id="watermark-url"
+                        type="url"
+                        placeholder="https://example.com/asset.png"
+                        value={watermarkUrl}
+                        onChange={(event) => {
+                          setWatermarkUrl(event.target.value);
+                          if (event.target.value) setWatermarkFile(null);
+                        }}
+                      />
+                    </div>
+
+                    <Button
+                      className="w-full"
+                      onClick={handleWatermarkDetection}
+                      disabled={!watermarkFile && !watermarkUrl.trim()}
+                    >
+                      Analyze Watermark and Provenance
+                    </Button>
                   </TabsContent>
                 </Tabs>
               )}
             </CardContent>
           </Card>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

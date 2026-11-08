@@ -1,141 +1,366 @@
-# Requirements Document
+# DeepShield - Product Requirements Document
 
 ## 1. Application Overview
 
 ### 1.1 Application Name
-Forensic AI Detection Platform
+
+DeepShield
 
 ### 1.2 Application Description
-A web-based forensic analysis platform that detects AI-generated or manipulated content across multiple media types (video, audio, text). The system flags suspicious content and provides detection confidence scores for forensic and verification purposes.
 
-## 2. Users and Use Scenarios
+DeepShield is a web-based digital content analysis platform designed to examine potentially synthetic, manipulated, or AI-generated content.
+
+The platform supports seven analysis categories:
+
+1. Image analysis
+2. Video analysis
+3. Audio analysis
+4. Text analysis
+5. Source code analysis
+6. Embedding-based analysis
+7. Watermark and provenance analysis
+
+Each category operates through its own analysis workflow. Results are presented through a unified interface, with supporting indicators, available measurements, and relevant limitations.
+
+The platform is intended to assist digital content examination. Its findings should be treated as forensic indicators rather than unquestionable proof of authenticity or manipulation.
+
+## 2. Users and Use Cases
 
 ### 2.1 Target Users
-- Forensic investigators
-- Fact-checking organizations
-- Content moderators
-- General users verifying online media authenticity
 
-### 2.2 Core Use Scenarios
-- Upload or input online video URLs to detect AI manipulation
-- Submit voice messages for AI generation detection
-- Input text content for AI authorship analysis
-- Review detection results with confidence scores and flagging indicators
+- Digital forensic investigators.
+- Software developers and code reviewers.
+- Security and content moderation teams.
+- Researchers studying synthetic media.
+- Organizations examining digital content provenance.
 
-## 3. Page Structure and Functionality
+### 2.2 Core Use Cases
 
-### 3.1 Page Structure
-```
+- Submit images, videos, audio, and text for analysis.
+- Examine source code for patterns associated with generated or copied code.
+- Inspect embedding representations and compare them with supported reference data.
+- Examine available watermark signals and content provenance metadata.
+- Review analysis results and supporting evidence.
+- Save and revisit previous analysis records.
+- Switch between light and dark themes.
+
+## 3. Application Structure
+
+```text
+DeepShield
+│
+├── Global Navigation
+│   ├── Home
+│   ├── Detection
+│   ├── History
+│   └── Theme Toggle
+│
 ├── Home Page
+│
 ├── Detection Page
-│   ├── Video Detection Section
-│   ├── Audio Detection Section
-│   └── Text Detection Section
+│   ├── Image Analysis
+│   ├── Video Analysis
+│   ├── Audio Analysis
+│   ├── Text Analysis
+│   ├── Code Analysis
+│   ├── Embedding Analysis
+│   └── Watermark & Provenance Analysis
+│
 ├── Results Page
+│
 └── History Page
 ```
 
-### 3.2 Home Page
-- Display platform introduction and core capabilities
-- Provide navigation to detection page
-- Show quick access buttons for three detection types: Video, Audio, Text
+## 4. Functional Requirements
 
-### 3.3 Detection Page
+### 4.1 Global Navigation
 
-#### 3.3.1 Video Detection Section
-- Input method: URL input field or file upload
-- Supported formats: MP4, AVI, MOV, WebM
-- Submit button to initiate analysis
-- Display processing status indicator
+The application must provide:
 
-#### 3.3.2 Audio Detection Section
-- Input method: File upload or audio recording
-- Supported formats: MP3, WAV, M4A, OGG
-- Submit button to initiate analysis
-- Display processing status indicator
+- Navigation to Home, Detection, and History.
+- Consistent branding across pages.
+- A theme toggle for Light and Dark modes.
+- Theme persistence across navigation and page reloads.
 
-#### 3.3.3 Text Detection Section
-- Input method: Text area for direct input or paste
-- Character limit: 10,000 characters
-- Submit button to initiate analysis
-- Display processing status indicator
+The interface should not display unnecessary version labels or decorative status badges.
 
-### 3.4 Results Page
-- Display detection result: Real or AI-Generated
-- Show confidence score (0-100%)
-- Display flagging indicator:
-  - Green badge: Real content
-  - Red badge: AI-generated content
-  - Yellow badge: Uncertain (confidence below 70%)
-- Show submitted content preview
-- Provide option to save result to history
-- Provide option to perform new detection
+### 4.2 Home Page
 
-### 3.5 History Page
-- Display list of past detection records
-- Each record shows:
-  - Media type (Video/Audio/Text)
-  - Detection result
-  - Confidence score
-  - Submission timestamp
-- Click on record to view detailed results
-- Provide option to delete individual records
+The Home Page must:
 
-## 4. Business Rules and Logic
+- Introduce the purpose of DeepShield.
+- Explain the available analysis categories.
+- Provide direct access to each analysis workflow.
+- Include a clear action to start an analysis.
+- Provide access to previous analysis records.
 
-### 4.1 Detection Processing Flow
-1. User submits content via Detection Page
-2. System validates input format and size
-3. System processes content and generates detection result
-4. System calculates confidence score
-5. System displays result on Results Page
-6. User can choose to save result to History
+Descriptions must reflect the capabilities actually available in the application.
 
-### 4.2 Confidence Score Interpretation
-- 0-30%: Likely real content
-- 31-69%: Uncertain, requires manual review
-- 70-100%: Likely AI-generated content
+### 4.3 Detection Page
 
-### 4.3 Flagging Logic
-- Confidence ≥ 70%: Flag as AI-generated (Red badge)
-- Confidence 31-69%: Flag as uncertain (Yellow badge)
-- Confidence ≤ 30%: Flag as real (Green badge)
+The Detection Page must provide separate workflows for each supported analysis category.
 
-## 5. Exceptions and Boundary Cases
+#### 4.3.1 Image Analysis
 
-| Scenario | Handling |
-|----------|----------|
-| Unsupported file format | Display error message: Unsupported format, please upload valid file |
-| File size exceeds limit | Display error message: File too large, maximum size is 100MB |
-| Network timeout during processing | Display error message: Processing timeout, please try again |
-| Invalid URL provided | Display error message: Invalid URL, please check and resubmit |
-| Empty text input | Display error message: Please enter text content |
-| Processing failure | Display error message: Analysis failed, please try again later |
+Input methods:
+- Image file upload.
+- Image URL, where supported.
 
-## 6. Acceptance Criteria
+Requirements:
+- Validate the input format and file size.
+- Submit the image to the image analysis module.
+- Display processing status.
+- Return the available analysis results and indicators.
 
-1. Users can successfully upload or input video, audio, and text content for detection
-2. System displays clear detection results with confidence scores
-3. Flagging indicators (Green/Yellow/Red badges) correctly reflect confidence levels
-4. Detection history is saved and accessible from History Page
-5. All error scenarios display appropriate error messages
-6. Page navigation functions correctly across all sections
-7. Processing status indicators display during analysis
-8. Users can perform multiple consecutive detections without errors
+#### 4.3.2 Video Analysis
 
-## 7. Features Not Included in This Release
+Input methods:
+- Video file upload.
+- Video URL, where supported.
 
-- Real-time detection via browser extension
-- Detailed explanation of detection methodology
-- Heatmap visualization of manipulated regions
-- Batch processing of multiple files
-- User account system and authentication
-- API access for third-party integration
-- Export detection reports in PDF format
-- Advanced filtering and search in History Page
-- Mobile app version
-- Multi-language support
+Requirements:
+- Validate the file format and size.
+- Process the video using the configured analysis pipeline.
+- Support frame-based or temporal analysis where implemented.
+- Display processing status and available results.
 
-## Reference Files
+#### 4.3.3 Audio Analysis
 
-1. Research Report Path: /workspace/app-b38yjtw6gdtt/docs/report.md
+Input methods:
+- Audio file upload.
+- Audio URL, where supported.
+
+Requirements:
+- Validate the audio format and size.
+- Submit the audio to the configured analysis pipeline.
+- Support relevant acoustic or spectral analysis where implemented.
+- Display processing status and available results.
+
+#### 4.3.4 Text Analysis
+
+Input methods:
+- Direct text entry.
+- Text file upload, where supported.
+
+Requirements:
+- Reject empty submissions.
+- Apply input-length limits.
+- Submit text to the configured analysis module.
+- Display available statistical or linguistic indicators.
+- Explain that text-based authorship detection is probabilistic and can produce false positives.
+
+#### 4.3.5 Code Analysis
+
+Input methods:
+- Source code file upload.
+- Direct code entry.
+
+Supported file extensions may include `.py`, `.js`, `.jsx`, `.ts`, `.tsx`, `.cpp`, `.c`, `.java`, `.go`, and other explicitly supported formats.
+
+Requirements:
+- Validate the file type and input size.
+- Allow the user to specify or select a programming language.
+- Use language-aware parsing where supported.
+- Examine available indicators such as token patterns, structural regularity, code repetition, and formatting consistency.
+- Display metrics only when the corresponding analysis has been performed.
+
+The application must not treat a single coding style, short code sample, or high regularity score as proof of AI authorship.
+
+#### 4.3.6 Embedding Analysis
+
+Input methods:
+- Supported media file upload.
+- Text input.
+- Precomputed embedding input, where supported.
+
+Requirements:
+- Extract or accept a compatible representation.
+- Use a configured embedding model.
+- Compare the representation against an available reference set when one exists.
+- Display relevant measurements, such as cosine similarity or distance.
+- Identify the reference model and comparison dataset used.
+
+An embedding similarity score must not be presented as a definitive authorship result. Its meaning depends on the model, reference data, and comparison method.
+
+#### 4.3.7 Watermark and Provenance Analysis
+
+Input methods:
+- Supported image, audio, video, or document upload.
+- URL input, where supported.
+
+Requirements:
+- Inspect available metadata.
+- Check for supported watermark signals.
+- Inspect C2PA Content Credentials when present.
+- Report whether a manifest was found and whether its available validation checks succeeded.
+- Display unavailable, unsupported, malformed, or invalid metadata distinctly.
+
+The application must not claim to detect every invisible watermark. Support for individual watermark technologies must be explicitly implemented and documented.
+
+A missing watermark or provenance manifest does not prove that content is authentic or synthetic.
+
+## 5. Results Page
+
+The Results Page must display:
+
+### 5.1 Overall Analysis Summary
+
+- Analysis category.
+- Submitted file or content preview, where appropriate.
+- Overall result or assessment.
+- Confidence score, only when provided by a calibrated analysis method.
+- Processing status and completion time.
+
+Possible assessment labels:
+
+- Likely synthetic or manipulated.
+- No strong synthetic indicators detected.
+- Inconclusive.
+- Analysis unavailable or incomplete.
+
+The wording must match the actual output of the analysis module.
+
+### 5.2 Supporting Evidence
+
+Display relevant evidence based on the selected analysis category.
+
+**Media Analysis**
+- Visual, temporal, acoustic, or other supported indicators.
+- Relevant frame or segment references, where available.
+- Measurements returned by the configured detector.
+
+**Text Analysis**
+- Statistical indicators.
+- Repetition and structural patterns.
+- Model or classifier output, if available.
+
+**Code Analysis**
+- Structural and token-level measurements.
+- Repetition and boilerplate indicators.
+- Language parsing status.
+- Other implemented code-analysis metrics.
+
+**Embedding Analysis**
+- Embedding model used.
+- Reference dataset or comparison group.
+- Similarity and distance measurements.
+- Comparison limitations.
+
+**Watermark and Provenance Analysis**
+- Supported watermark checks.
+- Manifest presence and validation status.
+- Available metadata.
+- Provenance information and validation limitations.
+
+### 5.3 Result Actions
+
+Users must be able to:
+
+- Save completed analysis records to History.
+- Start a new analysis.
+- Return to the Detection Page.
+- Review the available evidence.
+
+## 6. History Page
+
+The History Page must display saved analysis records in chronological order.
+
+Each record should include:
+
+- Analysis category.
+- File name or content description, where available.
+- Result or assessment.
+- Confidence score, when available.
+- Key analysis indicators.
+- Submission timestamp.
+
+Users must be able to:
+
+- Open a record to view its detailed results.
+- Delete an individual record.
+- Navigate through multiple pages of records.
+
+The application should provide appropriate empty, loading, and error states.
+
+## 7. Business Rules and Processing Logic
+
+### 7.1 Theme Management
+
+- Dark mode is the default theme.
+- Light mode is available through the navigation toggle.
+- Theme changes apply consistently across all pages and components.
+- The selected preference persists between sessions.
+- System theme preference may be used when no saved preference exists.
+
+### 7.2 Analysis Workflow
+
+1. The user selects an analysis category.
+2. The user supplies a file, URL, or text input supported by that category.
+3. The application validates the input.
+4. The request is sent to the corresponding analysis module.
+5. The module processes the input using its configured method.
+6. The module returns its result, supporting indicators, and any relevant warnings.
+7. The Results Page displays the returned information.
+8. The completed result can be saved to History.
+
+Each analysis category must have an independent processing workflow. A failure in one category should not be represented as a successful result from another category.
+
+### 7.3 Result and Confidence Interpretation
+
+- Confidence values must come from the configured model or analysis method.
+- Confidence values must be constrained to the documented range.
+- Scores from different analysis categories must not be treated as directly interchangeable.
+- A score must not automatically determine authenticity unless the underlying model has been evaluated and calibrated for that interpretation.
+- Missing measurements must be shown as unavailable, not fabricated or replaced with zero.
+- Conflicting indicators should be reported rather than hidden by an arbitrary overall score.
+
+Watermark and provenance results must be displayed separately from model-based synthetic-content predictions. A valid provenance manifest can provide evidence about a file's origin or editing history, but it does not automatically establish that the content is truthful.
+
+## 8. Exceptions and Boundary Cases
+
+| Scenario | Expected handling |
+|---|---|
+| Unsupported file format | Display an unsupported-format message |
+| Empty text or code input | Reject the submission and request valid input |
+| File exceeds size limit | Display the configured size limit |
+| Unreadable or corrupted file | Report that the file could not be processed |
+| Unsupported programming language | Explain which analysis methods remain available |
+| Invalid URL | Display a URL validation error |
+| Missing watermark | Report that no supported watermark was detected |
+| Missing C2PA manifest | Report that no manifest was found |
+| Malformed provenance metadata | Report an invalid or unreadable manifest |
+| Analysis service unavailable | Display an error and allow retry |
+| Partial analysis failure | Show completed checks and identify unavailable checks |
+| No history records | Display an appropriate empty state |
+
+## 9. Acceptance Criteria
+
+The application is considered to meet its core requirements when:
+
+1. Users can navigate between Home, Detection, and History.
+2. Users can switch between Light and Dark themes.
+3. Theme preferences persist after page reloads.
+4. All seven analysis categories are accessible.
+5. Each category validates its own supported input types.
+6. Each category submits requests to its corresponding processing module.
+7. Results reflect actual module responses rather than placeholder or randomly generated values.
+8. The Results Page displays relevant evidence and clearly identifies unavailable measurements.
+9. Users can save completed analysis records.
+10. Saved records can be viewed and deleted through History.
+11. Errors and incomplete analyses are communicated clearly.
+12. The interface remains usable on desktop and smaller screens.
+
+## 10. Features Outside the Current Release
+
+The following features are not required for the current release:
+
+- Automated repository scanning through CI/CD pipelines.
+- Automated legal filing or takedown requests.
+- User authentication and role-based access control.
+- Public API billing and rate limiting.
+- Large-scale batch processing.
+- Guaranteed detection of all AI-generated content.
+- Universal support for every proprietary watermark technology.
+- Definitive identification of the person or system that created a file.
+
+These features may be considered separately in future development.

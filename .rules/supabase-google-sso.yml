@@ -1,20 +1,27 @@
-id: supabase-google-sso
+
+id: supabase-google-oauth-review
 language: Tsx
 files:
   - src/**/*.tsx
+  - src/**/*.ts
+
 rule:
   pattern: |
-    $AUTH.signInWithOAuth({ provider: 'google', $$$ })
-message: |
-  Replace `signInWithOAuth` with `signInWithSSO` for Google authentication (Supabase).
+    $AUTH.signInWithOAuth({ $$$ })
 
-  Refactor to:
-  ```typescript
-  const { data, error } = await supabase.auth.signInWithSSO({
-    domain: 'miaoda-gg.com',
-    options: { redirectTo: window.location.origin },
-  });
-  if (data?.url) window.open(data.url, '_self');
-  ```
-  Ensure `window.open` uses `_self` target.
+message: |
+  Supabase OAuth integration detected.
+
+  Review this authentication configuration to ensure it
+  belongs to this project and is intentionally configured.
+
+  Use the standard Supabase OAuth flow only when the project
+  explicitly requires an external OAuth provider.
+
+  Do not replace signInWithOAuth with Miaoda-specific SSO
+  integrations or hardcoded third-party domains.
+
+  Keep authentication configuration independent of
+  platform-specific integrations.
+
 severity: warning

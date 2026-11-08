@@ -1,7 +1,7 @@
-import { Badge } from '@/components/ui/badge';
-import { getBadgeVariant, getBadgeLabel } from '@/types/types';
-import type { DetectionResultType } from '@/types/types';
-import { CheckCircle2, AlertTriangle, XCircle } from 'lucide-react';
+
+import { Badge } from "@/components/ui/badge";
+import type { DetectionResultType } from "@/types/types";
+import { CheckCircle2, XCircle } from "lucide-react";
 
 interface ResultBadgeProps {
   result: DetectionResultType;
@@ -9,25 +9,35 @@ interface ResultBadgeProps {
   showIcon?: boolean;
 }
 
-export function ResultBadge({ result, confidence, showIcon = true }: ResultBadgeProps) {
-  const variant = getBadgeVariant(confidence);
-  const label = getBadgeLabel(result, confidence);
+export function ResultBadge({
+  result,
+  confidence,
+  showIcon = true,
+}: ResultBadgeProps) {
+  const isAiGenerated = result === "ai-generated";
 
-  const getIcon = () => {
-    if (!showIcon) return null;
-    
-    const iconClass = 'w-4 h-4 mr-1';
-    if (variant === 'success') return <CheckCircle2 className={iconClass} />;
-    if (variant === 'warning') return <AlertTriangle className={iconClass} />;
-    return <XCircle className={iconClass} />;
-  };
+  const label = isAiGenerated
+    ? "Likely AI-Generated"
+    : "Likely Authentic";
+
+  const variant = isAiGenerated ? "destructive" : "success";
+  const Icon = isAiGenerated ? XCircle : CheckCircle2;
+
+  const safeConfidence = Number.isFinite(confidence)
+    ? Math.min(100, Math.max(0, confidence))
+    : null;
 
   return (
-    <Badge 
+    <Badge
       variant={variant}
+      title={
+        safeConfidence === null
+          ? "Confidence unavailable"
+          : `Model confidence: ${safeConfidence.toFixed(1)}%`
+      }
       className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide"
     >
-      {getIcon()}
+      {showIcon && <Icon className="mr-1 h-4 w-4" />}
       {label}
     </Badge>
   );

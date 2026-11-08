@@ -1,6 +1,8 @@
+import type { ComponentType } from "react";
+
 export interface Option {
   label: string;
   value: string;
-  icon?: React.ComponentType<{ className?: string }>;
+  icon?: ComponentType<{ className?: string }>;
   withCount?: boolean;
 }
