@@ -36,3 +36,15 @@ coverage/
 
 # Local Supabase state
 supabase/.temp/
+# Python backend
+backend/.venv/
+backend/**/__pycache__/
+backend/.pytest_cache/
+backend/.coverage
+backend/data/
+backend/models/*.pt
+backend/reports/
+
+# Python virtual environments
+.venv/
+venv/
