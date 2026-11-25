@@ -1,0 +1,361 @@
+PROJECT: deepfake_detetctor
+Detected stack: Node.js / JavaScript, Python
+Key libraries: axios@^1.13.1, fastapi, numpy, opencv-python, pandas, react@^18.0.0, scikit-learn, torch, typescript@~5.9.3, uvicorn
+
+FOLDER TREE:
+deepfake_detetctor/
+|-- .git/  (skipped)
+|-- .rules/
+|   |-- check.sh  (844B)
+|   |-- contrast.yml  (4.0KB)
+|   |-- require-button-interaction.yml  (1.2KB)
+|   |-- SelectItem.yml  (774B)
+|   |-- slot-nesting.yml  (1.0KB)
+|   |-- supabase-edge-function-get-body.yml  (1.2KB)
+|   |-- supabase-google-sso.yml  (662B)
+|   |-- testBuild.sh  (587B)
+|   |-- toast-hook.yml  (439B)
+|-- .venv/  (skipped)
+|-- ai_video_detection_benchmark-main/
+|   |-- benchmark_scripts/
+|   |   |-- build_manifest.py  (2.6KB)
+|   |   |-- compute_metrics.py  (18.3KB)
+|   |   |-- infer_busterx.py  (8.7KB)
+|   |   |-- infer_cocovideo.py  (9.8KB)
+|   |   |-- infer_ivyfake.py  (7.8KB)
+|   |   |-- infer_videoveritas.py  (9.1KB)
+|   |   |-- skyra_model_engine_hf.py  (7.9KB)
+|   |-- results/
+|   |   |-- phase2/
+|   |   |   |-- branch_analysis/
+|   |   |   |   |-- aegis_raw/
+|   |   |   |   |   |-- branch_analysis_aegis_raw.json  (1.9KB)  <== likely needed
+|   |   |   |   |   |-- branch_correlation_aegis_raw.png  (127.2KB)
+|   |   |   |   |   |-- confidence_histogram_aegis_raw.png  (36.9KB)
+|   |   |   |   |   |-- disagreement_histogram_aegis_raw.png  (52.5KB)
+|   |   |   |   |   |-- reliability_diagram_aegis_raw.png  (112.7KB)
+|   |   |   |   |-- genbuster/
+|   |   |   |   |   |-- branch_analysis_genbuster.json  (1.5KB)  <== likely needed
+|   |   |   |   |   |-- branch_correlation_genbuster.png  (234.6KB)
+|   |   |   |   |   |-- confidence_histogram_genbuster.png  (36.8KB)
+|   |   |   |   |   |-- disagreement_histogram_genbuster.png  (55.1KB)
+|   |   |   |   |   |-- reliability_diagram_genbuster.png  (107.1KB)
+|   |   |   |-- scores/
+|   |   |   |   |-- aegis_raw_scores.jsonl  (213.8KB)
+|   |   |   |   |-- aigvdbench_scores.jsonl  (117.2KB)
+|   |   |   |   |-- extra_test_scores.jsonl  (25.0KB)
+|   |   |   |   |-- genbuster_scores.jsonl  (1.1MB)
+|   |   |   |   |-- val_scores.jsonl  (2.4MB)
+|   |   |   |-- ablation_aegis.json  (3.3KB)
+|   |   |   |-- ablation_aegis_raw.json  (3.3KB)
+|   |   |   |-- ablation_aegis_raw_checkpoint_epoch003.json  (3.3KB)
+|   |   |   |-- ablation_aegis_raw_checkpoint_epoch004.json  (3.3KB)
+|   |   |   |-- ablation_aigvdbench.json  (2.2KB)
+|   |   |   |-- ablation_extra_test.json  (2.2KB)
+|   |   |   |-- ablation_genbuster.json  (2.4KB)
+|   |   |   |-- ablation_genbuster_checkpoint_epoch003.json  (2.4KB)
+|   |   |   |-- ablation_genbuster_checkpoint_epoch004.json  (2.4KB)
+|   |   |   |-- ablation_val.json  (2.5KB)
+|   |   |   |-- benchmark_table.csv  (770B)
+|   |   |   |-- benchmark_table.md  (1.9KB)
+|   |   |   |-- full_comparison.csv  (1.9KB)
+|   |   |   |-- full_comparison.md  (2.5KB)
+|   |   |   |-- full_comparison.png  (564.8KB)
+|   |   |   |-- history.json  (44.1KB)
+|   |   |   |-- threshold_comparison.json  (2.1KB)
+|   |   |   |-- threshold_comparison.md  (1.4KB)
+|   |   |   |-- threshold_comparison_ablation.json  (16.2KB)
+|   |   |   |-- threshold_comparison_ablation.md  (3.0KB)
+|   |   |   |-- threshold_comparison_ablation.png  (728.0KB)
+|   |   |   |-- threshold_tuning.json  (1.1KB)
+|   |   |   |-- threshold_tuning_ablation.json  (5.3KB)
+|   |-- src/
+|   |   |-- branches/
+|   |   |   |-- __pycache__/  (skipped)
+|   |   |   |-- ablation_eval.py  (26.0KB)
+|   |   |   |-- branch_analysis.py  (15.4KB)  <== likely needed
+|   |   |   |-- build_benchmark_table.py  (13.3KB)
+|   |   |   |-- build_calibration_set.py  (7.4KB)
+|   |   |   |-- build_final_dataset.py  (8.1KB)
+|   |   |   |-- build_fresh_real_test.py  (2.3KB)
+|   |   |   |-- build_full_comparison.py  (9.1KB)
+|   |   |   |-- calibrate.py  (9.1KB)
+|   |   |   |-- calibration_analysis.py  (12.6KB)  <== likely needed
+|   |   |   |-- consistency_branch.py  (13.9KB)
+|   |   |   |-- dataset_loader.py  (10.4KB)
+|   |   |   |-- demamba_readme.md  (7.0KB)
+|   |   |   |-- detector_model.py  (18.6KB)  <== likely needed
+|   |   |   |-- extract_dataset.sh  (2.2KB)
+|   |   |   |-- inference.py  (8.5KB)
+|   |   |   |-- motion_branch.py  (17.0KB)
+|   |   |   |-- pixel_branch.py  (12.9KB)
+|   |   |   |-- preprocess_dataset.py  (5.9KB)
+|   |   |   |-- preprocess_final.py  (6.3KB)
+|   |   |   |-- save_scores.py  (7.4KB)
+|   |   |   |-- test_aigvdbench.py  (7.7KB)
+|   |   |   |-- threshold_tuning.py  (9.6KB)
+|   |   |   |-- threshold_tuning_ablation.py  (9.1KB)
+|   |   |   |-- train.py  (18.6KB)
+|   |   |-- utils/
+|   |   |   |-- __pycache__/  (skipped)
+|   |   |   |-- video_io.py  (15.6KB)
+|   |-- .gitignore  (698B)
+|   |-- download_dataset.py  (4.6KB)
+|   |-- LICENSE  (1.0KB)
+|   |-- README.md  (23.0KB)
+|   |-- requirements.txt  (430B)  <== likely needed
+|-- backend/
+|   |-- .pytest_cache/  (skipped)
+|   |-- .venv/  (skipped)
+|   |-- app/
+|   |   |-- __pycache__/  (skipped)
+|   |   |-- api/
+|   |   |   |-- __pycache__/  (skipped)
+|   |   |   |-- routes/
+|   |   |   |   |-- __pycache__/  (skipped)
+|   |   |   |   |-- __init__.py  (0B)
+|   |   |   |   |-- detection.py  (4.1KB)  <== likely needed
+|   |   |   |   |-- features.py  (944B)
+|   |   |   |   |-- media_features.py  (1.2KB)
+|   |   |   |   |-- status.py  (928B)
+|   |   |   |-- __init__.py  (0B)
+|   |   |-- core/
+|   |   |   |-- __pycache__/  (skipped)
+|   |   |   |-- __init__.py  (0B)
+|   |   |   |-- config.py  (669B)
+|   |   |   |-- modalities.py  (874B)
+|   |   |-- detectors/
+|   |   |   |-- audio/
+|   |   |   |   |-- __pycache__/  (skipped)
+|   |   |   |   |-- __init__.py  (0B)
+|   |   |   |   |-- analyzer.py  (8.6KB)  <== likely needed
+|   |   |   |   |-- registration.py  (2.4KB)
+|   |   |   |-- code/
+|   |   |   |   |-- __pycache__/  (skipped)
+|   |   |   |   |-- __init__.py  (100B)
+|   |   |   |   |-- analyzer.py  (1.8KB)  <== likely needed
+|   |   |   |   |-- registration.py  (2.2KB)
+|   |   |   |-- image/
+|   |   |   |   |-- __pycache__/  (skipped)
+|   |   |   |   |-- __init__.py  (0B)
+|   |   |   |   |-- analyzer.py  (955B)  <== likely needed
+|   |   |   |   |-- model.py  (1.4KB)
+|   |   |   |   |-- predictor.py  (5.4KB)
+|   |   |   |   |-- registration.py  (569B)
+|   |   |   |-- text/
+|   |   |   |   |-- __pycache__/  (skipped)
+|   |   |   |   |-- __init__.py  (100B)
+|   |   |   |   |-- analyzer.py  (1.5KB)  <== likely needed
+|   |   |   |   |-- classifier.py  (0B)  <== likely needed
+|   |   |   |   |-- model.py  (0B)
+|   |   |   |   |-- registration.py  (2.1KB)
+|   |   |   |-- video/
+|   |   |   |   |-- __pycache__/  (skipped)
+|   |   |   |   |-- __init__.py  (0B)
+|   |   |   |   |-- analyzer.py  (5.2KB)  <== likely needed
+|   |   |   |   |-- registration.py  (2.1KB)
+|   |   |   |-- watermark/
+|   |   |   |   |-- __pycache__/  (skipped)
+|   |   |   |   |-- __init__.py  (0B)
+|   |   |   |   |-- analyzer.py  (6.0KB)  <== likely needed
+|   |   |   |   |-- registration.py  (2.8KB)
+|   |   |-- schemas/
+|   |   |   |-- __pycache__/  (skipped)
+|   |   |   |-- __init__.py  (0B)
+|   |   |   |-- detection.py  (418B)  <== likely needed
+|   |   |   |-- features.py  (681B)
+|   |   |   |-- media.py  (739B)
+|   |   |   |-- request.py  (366B)
+|   |   |-- services/
+|   |   |   |-- __pycache__/  (skipped)
+|   |   |   |-- detector_registry.py  (541B)  <== likely needed
+|   |   |   |-- file_service.py  (1.2KB)  <== likely needed
+|   |   |   |-- input_validator.py  (1.3KB)
+|   |   |-- __init__.py  (0B)
+|   |   |-- main.py  (1.9KB)  <== likely needed
+|   |-- data/
+|   |   |-- test_audios/
+|   |   |   |-- 01_melody_AI.wav  (488.0KB)
+|   |   |   |-- 02_chord_progression_AI.wav  (522.5KB)
+|   |   |   |-- 03_ambient_drone_AI.wav  (1.0MB)
+|   |   |   |-- 04_rain_AI.wav  (867.0KB)
+|   |   |   |-- 05_notification_chime_AI.wav  (78.9KB)
+|   |   |   |-- 06_scifi_sweep_AI.wav  (221.0KB)
+|   |   |   |-- Bartender_real.mp3  (5.2MB)
+|   |   |   |-- Cam2r_real.mp3  (5.6MB)
+|   |   |   |-- Taskmaster_real.mp3  (6.9MB)
+|   |   |   |-- Tom_Cashman _real.mp3  (4.3MB)
+|   |   |-- test_embeddings/
+|   |   |   |-- api_test_embedding.json  (90B)  <== likely needed
+|   |   |-- test_images/
+|   |   |   |-- AI (1).png  (2.1MB)
+|   |   |   |-- AI (2).png  (2.8MB)
+|   |   |   |-- AI (3).png  (2.2MB)
+|   |   |   |-- AI (4).png  (2.1MB)
+|   |   |   |-- AI(6).png  (2.6MB)
+|   |   |   |-- AI(7).png  (34.8KB)
+|   |   |   |-- real (1).png  (312.0KB)
+|   |   |   |-- real (2).png  (358.7KB)
+|   |   |   |-- real (3).png  (423.0KB)
+|   |   |   |-- real (4).png  (502.7KB)
+|   |   |-- test_videos/
+|   |   |   |-- AI(1).mp4  (1.9MB)
+|   |   |   |-- AI(2).mp4  (10.4MB)
+|   |   |   |-- AI(3).mp4  (1004.1KB)
+|   |   |   |-- AI(4).mp4  (2.6MB)
+|   |   |   |-- Real(1).mp4  (15.8MB)
+|   |   |   |-- Real(2).mp4  (23.9MB)
+|   |   |   |-- Real(3).mp4  (19.1MB)
+|   |   |   |-- Real(4).mp4  (18.3MB)
+|   |-- models/
+|   |   |-- aegis/
+|   |   |   |-- .cache/  (skipped)
+|   |   |   |-- checkpoint_best.pt  (432.8MB)
+|   |   |-- image_detector.pt  (3.9MB)
+|   |-- reports/
+|   |-- tests/
+|   |   |-- __pycache__/  (skipped)
+|   |   |-- watermark_samples/
+|   |   |   |-- AI_watermark_test.png  (966B)
+|   |   |   |-- C2PA_marker_test.png  (956B)
+|   |   |   |-- REAL_watermark_test.png  (911B)
+|   |   |-- test_feature_api.py  (912B)  <== likely needed
+|   |   |-- test_image_detector.py  (1.1KB)  <== likely needed
+|   |   |-- test_media_features.py  (3.2KB)
+|   |   |-- test_text_code.py  (917B)
+|   |-- training/
+|   |   |-- __init__.py  (0B)
+|   |   |-- prepare_image_dataset.py  (5.4KB)
+|   |   |-- train_image_detector.py  (10.9KB)  <== likely needed
+|   |-- requirements.txt  (253B)  <== likely needed
+|-- dist/  (skipped)
+|-- docs/
+|   |-- DESIGN.md  (5.0KB)
+|   |-- prd.md  (12.8KB)
+|   |-- report.md  (16.7KB)
+|-- node_modules/  (skipped)
+|-- public/
+|   |-- images/
+|   |   |-- error/
+|   |   |   |-- 404-dark.svg  (2.1KB)
+|   |   |   |-- 404.svg  (2.1KB)
+|   |   |   |-- 500-dark.svg  (2.8KB)
+|   |   |   |-- 500.svg  (2.8KB)
+|   |   |   |-- 503-dark.svg  (3.0KB)
+|   |   |   |-- 503.svg  (2.9KB)
+|   |   |-- logo/
+|   |   |   |-- auth-logo.svg  (6.3KB)
+|   |   |   |-- logo-dark.svg  (6.2KB)
+|   |   |   |-- logo-icon.svg  (3.3KB)
+|   |   |-- shape/
+|   |   |   |-- grid-01.svg  (5.9KB)
+|   |   |-- favicon.ico  (15.0KB)
+|-- src/
+|   |-- components/
+|   |   |-- common/
+|   |   |   |-- IntersectObserver.tsx  (524B)
+|   |   |   |-- PageMeta.tsx  (735B)
+|   |   |   |-- RouteGuard.tsx  (2.3KB)  <== likely needed
+|   |   |-- ui/
+|   |   |   |-- [50 files: 50x.tsx]
+|   |   |-- ConfidenceScore.tsx  (2.5KB)
+|   |   |-- dropzone.tsx  (8.1KB)
+|   |   |-- FileUploadZone.tsx  (5.5KB)  <== likely needed
+|   |   |-- NavigationHeader.tsx  (3.0KB)
+|   |   |-- ProcessingIndicator.tsx  (984B)
+|   |   |-- ResultBadge.tsx  (1.4KB)
+|   |   |-- ThemeToggle.tsx  (1.3KB)
+|   |-- contexts/
+|   |   |-- AuthContext.tsx  (3.6KB)
+|   |   |-- ThemeContext.tsx  (2.6KB)
+|   |-- db/
+|   |   |-- supabase.ts  (450B)
+|   |-- hooks/
+|   |   |-- use-debounce.ts  (422B)
+|   |   |-- use-go-back.ts  (402B)
+|   |   |-- use-mobile.tsx  (632B)
+|   |   |-- use-supabase-upload.ts  (6.2KB)  <== likely needed
+|   |-- lib/
+|   |   |-- utils.ts  (1.4KB)
+|   |-- pages/
+|   |   |-- DetectionPage.tsx  (17.0KB)  <== likely needed
+|   |   |-- HistoryPage.tsx  (10.4KB)
+|   |   |-- HomePage.tsx  (8.9KB)
+|   |   |-- NotFound.tsx  (1.6KB)
+|   |   |-- ResultsPage.tsx  (17.4KB)
+|   |   |-- SamplePage.tsx  (561B)
+|   |-- services/
+|   |   |-- detectionService.ts  (8.7KB)  <== likely needed
+|   |   |-- historyService.ts  (5.4KB)  <== likely needed
+|   |-- types/
+|   |   |-- index.ts  (184B)  <== likely needed
+|   |   |-- types.ts  (2.2KB)
+|   |-- App.tsx  (1.4KB)  <== likely needed
+|   |-- index.css  (5.7KB)
+|   |-- main.tsx  (377B)
+|   |-- routes.tsx  (831B)  <== likely needed
+|   |-- svg.d.ts  (203B)
+|   |-- vite-env.d.ts  (37B)
+|-- supabase/
+|   |-- migrations/
+|   |   |-- 00001_create_detection_history_table.sql  (714B)  <== likely needed
+|   |   |-- 00002_add_image_media_type_support.sql  (301B)
+|   |   |-- 00003_add_code_embedding_watermark_modalities.sql  (492B)
+|   |   |-- 00004_secure_detection_history.sql  (1.2KB)  <== likely needed
+|-- tasks/
+|   |-- report.md  (10.1KB)
+|-- .env  (270B)  [SECRET FILE - do not share contents]
+|-- .gitignore  (634B)
+|-- biome.json  (426B)
+|-- components.json  (461B)
+|-- index.html  (679B)  <== likely needed
+|-- package-lock.json  (396.6KB)
+|-- package.json  (3.3KB)  <== likely needed
+|-- postcss.config.js  (87B)
+|-- project_map.py  (7.2KB)
+|-- README.md  (4.3KB)
+|-- sgconfig.yml  (79B)
+|-- tailwind.config.js  (6.8KB)
+|-- tsconfig.app.json  (785B)
+|-- tsconfig.check.json  (544B)
+|-- tsconfig.json  (456B)
+|-- tsconfig.node.json  (617B)
+|-- vite.config.ts  (568B)
+
+FILES MOST LIKELY NEEDED (entry points, routes, APIs, config):
+  - ai_video_detection_benchmark-main\results\phase2\branch_analysis\aegis_raw\branch_analysis_aegis_raw.json
+  - ai_video_detection_benchmark-main\results\phase2\branch_analysis\genbuster\branch_analysis_genbuster.json
+  - ai_video_detection_benchmark-main\src\branches\branch_analysis.py
+  - ai_video_detection_benchmark-main\src\branches\calibration_analysis.py
+  - ai_video_detection_benchmark-main\src\branches\detector_model.py
+  - ai_video_detection_benchmark-main\requirements.txt
+  - backend\app\api\routes\detection.py
+  - backend\app\detectors\audio\analyzer.py
+  - backend\app\detectors\code\analyzer.py
+  - backend\app\detectors\image\analyzer.py
+  - backend\app\detectors\text\analyzer.py
+  - backend\app\detectors\text\classifier.py
+  - backend\app\detectors\video\analyzer.py
+  - backend\app\detectors\watermark\analyzer.py
+  - backend\app\schemas\detection.py
+  - backend\app\services\detector_registry.py
+  - backend\app\services\file_service.py
+  - backend\app\main.py
+  - backend\data\test_embeddings\api_test_embedding.json
+  - backend\tests\test_feature_api.py
+  - backend\tests\test_image_detector.py
+  - backend\training\train_image_detector.py
+  - backend\requirements.txt
+  - src\components\common\RouteGuard.tsx
+  - src\components\FileUploadZone.tsx
+  - src\hooks\use-supabase-upload.ts
+  - src\pages\DetectionPage.tsx
+  - src\services\detectionService.ts
+  - src\services\historyService.ts
+  - src\types\index.ts
+  - src\App.tsx
+  - src\routes.tsx
+  - supabase\migrations\00001_create_detection_history_table.sql
+  - supabase\migrations\00004_secure_detection_history.sql
+  - index.html
+  - package.json

@@ -53,12 +53,6 @@ const analysisCategories = [
       'Inspect source code structure and style for patterns associated with generated code.',
   },
   {
-    icon: Cpu,
-    title: 'Embedding Analysis',
-    description:
-      'Examine supported feature representations and similarity patterns.',
-  },
-  {
     icon: Fingerprint,
     title: 'Watermark and Provenance',
     description:

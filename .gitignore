@@ -42,9 +42,14 @@ backend/**/__pycache__/
 backend/.pytest_cache/
 backend/.coverage
 backend/data/
-backend/models/*.pt
+# Model checkpoints are included; large checkpoints use Git LFS.
 backend/reports/
 
 # Python virtual environments
 .venv/
 venv/
+
+# Generated Python files
+__pycache__/
+*.py[cod]
+*.egg-info/

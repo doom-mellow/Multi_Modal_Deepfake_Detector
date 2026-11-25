@@ -77,8 +77,6 @@ function MediaIcon({ mediaType }: { mediaType: string }) {
       return <FileText className={className} />;
     case 'code':
       return <Code2 className={className} />;
-    case 'embedding':
-      return <Cpu className={className} />;
     case 'watermark':
       return <Fingerprint className={className} />;
     default:

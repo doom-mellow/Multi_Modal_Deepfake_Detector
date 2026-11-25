@@ -41,7 +41,6 @@ function isValidMediaType(value: string): value is MediaType {
     "audio",
     "text",
     "code",
-    "embedding",
     "watermark",
   ].includes(value);
 }

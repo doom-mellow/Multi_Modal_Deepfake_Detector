@@ -177,7 +177,6 @@ async def detect_image(
     file=None,
     file_metadata=None,
     language_hint=None,
-    embedding_model=None,
 ):
     if url:
         raise HTTPException(

@@ -1,0 +1,14 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.joblib
+*.pkl
+*.csv
+*.avi
+*.mp4
+*.egg-info/
+.pytest_cache/
+dist/
+build/
+.env

@@ -2,12 +2,12 @@
 MODALITIES = {
     "image": {
         "name": "Image Detection",
-        "input_type": "file_or_url",
+        "input_type": "file",
         "detector_path": "app.detectors.image",
     },
     "video": {
         "name": "Video Detection",
-        "input_type": "file_or_url",
+        "input_type": "file",
         "detector_path": "app.detectors.video",
     },
     "audio": {
@@ -25,14 +25,9 @@ MODALITIES = {
         "input_type": "text_or_file",
         "detector_path": "app.detectors.code",
     },
-    "embedding": {
-        "name": "Embedding Analysis",
-        "input_type": "file_or_text",
-        "detector_path": "app.detectors.embedding",
-    },
     "watermark": {
         "name": "Watermark Analysis",
-        "input_type": "file_or_url",
+        "input_type": "file",
         "detector_path": "app.detectors.watermark",
     },
 }

@@ -9,7 +9,6 @@ MediaType = Literal[
     "audio",
     "text",
     "code",
-    "embedding",
     "watermark",
 ]
 
@@ -21,5 +20,4 @@ class DetectionRequest(BaseModel):
     url: HttpUrl | None = None
 
     languageHint: str | None = None
-    embeddingModel: str | None = None
 

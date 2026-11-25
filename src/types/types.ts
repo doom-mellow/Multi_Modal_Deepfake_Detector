@@ -1,48 +1,38 @@
+
 export type MediaType =
   | "image"
   | "video"
   | "audio"
   | "text"
   | "code"
-  | "embedding"
   | "watermark";
 
-export type DetectionResultType = "real" | "ai-generated";
+export type DetectionResultType =
+  | "real"
+  | "ai-generated"
+  | "analysis-complete";
 
 export interface CodeBreakdown {
-  language: string;
-  authorshipProbability: number;
-  astEntropy: number;
-  tokenPerplexity: number;
-  syntheticBoilerplateDetected: boolean;
-  patternsFound: string[];
-  styleConsistency: number;
-  commentRatio: number;
-}
-
-export interface EmbeddingBreakdown {
-  modelArchitecture: string;
-  cosineSimilarity: number;
-  nearestCluster: string;
-  euclideanDistance: number;
-  outlierScore: number;
-  isLatentOutlier: boolean;
-  featureDimension: number;
-  clusterDistributions: {
-    cluster: string;
-    similarity: number;
-    color: string;
-  }[];
+  language_hint: string;
+  character_count: number;
+  line_count: number;
+  nonempty_line_count: number;
+  token_count: number;
+  unique_token_count: number;
+  token_diversity: number;
+  comment_line_count: number;
+  comment_line_ratio: number;
+  average_line_length: number;
+  repeated_lines: Record<string, number>;
 }
 
 export interface WatermarkBreakdown {
   watermarkDetected: boolean;
   watermarkType: string | null;
-  confidenceLevel: number;
-  c2paManifestPresent: boolean;
-  c2paSignatureValid: boolean;
+  c2paMarkersFound: boolean;
+  c2paSignatureVerification: string;
   issuerOrg: string | null;
-  tamperingDetected: boolean;
+  tamperingVerification: string;
   provenanceChain: {
     action: string;
     actor: string;
@@ -54,11 +44,11 @@ export interface WatermarkBreakdown {
 
 export interface DetectionResult {
   result: DetectionResultType;
-  confidence: number;
+  confidence?: number;
   explanation: string;
   indicators: string[];
+  metadata?: Record<string, unknown>;
   codeBreakdown?: CodeBreakdown;
-  embeddingBreakdown?: EmbeddingBreakdown;
   watermarkBreakdown?: WatermarkBreakdown;
 }
 
@@ -79,7 +69,7 @@ export interface DetectionRequest {
   file?: File;
   url?: string;
   languageHint?: string;
-  embeddingModel?: string;
+  filename?: string;
 }
 
 export type BadgeVariant = "success" | "warning" | "destructive";
@@ -94,7 +84,9 @@ export function getBadgeLabel(
   result: DetectionResultType,
   confidence: number,
 ): string {
+  if (result === "analysis-complete") return "Analysis Completed";
   if (confidence <= 30) return "Low confidence";
   if (confidence <= 69) return "Inconclusive";
+
   return result === "ai-generated" ? "AI-generated" : "Authentic";
 }

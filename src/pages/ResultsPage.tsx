@@ -16,7 +16,13 @@ import {
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ConfidenceScore } from '@/components/ConfidenceScore';
@@ -37,12 +43,26 @@ function isValidResult(value: unknown): value is DetectionResult {
 
   const result = value as Partial<DetectionResult>;
 
+  const validResultType =
+    result.result === 'real' ||
+    result.result === 'ai-generated' ||
+    result.result === 'analysis-complete';
+
+  const validConfidence =
+    result.confidence === undefined ||
+    (
+      typeof result.confidence === 'number' &&
+      Number.isFinite(result.confidence) &&
+      result.confidence >= 0 &&
+      result.confidence <= 100
+    );
+
+  const requiresConfidence = result.result !== 'analysis-complete';
+
   return (
-    (result.result === 'real' || result.result === 'ai-generated') &&
-    typeof result.confidence === 'number' &&
-    Number.isFinite(result.confidence) &&
-    result.confidence >= 0 &&
-    result.confidence <= 100 &&
+    validResultType &&
+    validConfidence &&
+    (!requiresConfidence || typeof result.confidence === 'number') &&
     typeof result.explanation === 'string' &&
     Array.isArray(result.indicators)
   );
@@ -55,7 +75,6 @@ function isMediaType(value: unknown): value is MediaType {
     'audio',
     'text',
     'code',
-    'embedding',
     'watermark',
   ].includes(String(value));
 }
@@ -68,6 +87,7 @@ export default function ResultsPage() {
   const [isSaved, setIsSaved] = useState(false);
 
   const state = location.state as LocationState | null;
+
   const validState =
     state &&
     isMediaType(state.mediaType) &&
@@ -84,8 +104,18 @@ export default function ResultsPage() {
 
   const { mediaType, result, fileName, contentPreview } = state;
 
+  const hasConfidence = typeof result.confidence === 'number';
+  const isAnalysisOnly = result.result === 'analysis-complete';
+
   const handleSaveToHistory = async () => {
     if (isSaving || isSaved) return;
+
+    if (isAnalysisOnly || result.confidence === undefined) {
+      toast.error(
+        'History currently supports scored authenticity results only.',
+      );
+      return;
+    }
 
     setIsSaving(true);
 
@@ -125,18 +155,37 @@ export default function ResultsPage() {
                   Findings for your submitted {mediaType} content.
                 </CardDescription>
               </div>
-              <ResultBadge result={result.result} confidence={result.confidence} />
+
+              <ResultBadge
+                result={result.result}
+                confidence={result.confidence}
+              />
             </div>
           </CardHeader>
 
           <CardContent>
             <div className="flex flex-col items-center py-6">
-              <ConfidenceScore score={result.confidence} size="lg" />
+              {hasConfidence ? (
+                <>
+                  <ConfidenceScore score={result.confidence!} size="lg" />
+                  <p className="mt-3 max-w-2xl text-center text-xs text-muted-foreground">
+                    Confidence scores are model outputs, not guarantees of
+                    authenticity or authorship.
+                  </p>
+                </>
+              ) : (
+                <div className="rounded-lg border border-border bg-muted/30 px-6 py-5 text-center">
+                  <CheckCircle2 className="mx-auto mb-2 h-8 w-8 text-primary" />
+                  <p className="font-medium">Analysis completed</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    This module reports extracted features and observations.
+                    It does not produce an authenticity confidence score.
+                  </p>
+                </div>
+              )}
+
               <p className="mt-6 max-w-2xl text-center text-sm leading-relaxed text-muted-foreground">
                 {result.explanation}
-              </p>
-              <p className="mt-3 max-w-2xl text-center text-xs text-muted-foreground">
-                Confidence scores are model outputs, not guarantees of authenticity or authorship.
               </p>
             </div>
           </CardContent>
@@ -151,125 +200,81 @@ export default function ResultsPage() {
                   <div>
                     <CardTitle>Code Analysis</CardTitle>
                     <CardDescription>
-                      Structural and stylistic indicators in the submitted source code.
+                      Structural and lexical measurements from the submitted source code.
+                      These measurements do not establish code authorship.
                     </CardDescription>
                   </div>
                 </div>
-                <Badge variant="outline">{result.codeBreakdown.language}</Badge>
+                <Badge variant="outline">
+                  {result.codeBreakdown.language_hint ?? 'Auto-detected'}
+                </Badge>
               </div>
             </CardHeader>
 
             <CardContent className="space-y-6">
               <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                 <Metric
-                  label="Authorship Signal"
-                  value={`${result.codeBreakdown.authorshipProbability}%`}
+                  label="Lines of Code"
+                  value={String(result.codeBreakdown.line_count ?? 0)}
                 />
                 <Metric
-                  label="AST Token Entropy"
-                  value={`${result.codeBreakdown.astEntropy} / 1.0`}
+                  label="Total Tokens"
+                  value={String(result.codeBreakdown.token_count ?? 0)}
                 />
                 <Metric
-                  label="Token Perplexity"
-                  value={String(result.codeBreakdown.tokenPerplexity)}
+                  label="Unique Tokens"
+                  value={String(result.codeBreakdown.unique_token_count ?? 0)}
+                />
+                <Metric
+                  label="Token Diversity"
+                  value={`${((result.codeBreakdown.token_diversity ?? 0) * 100).toFixed(1)}%`}
+                />
+                <Metric
+                  label="Non-empty Lines"
+                  value={String(result.codeBreakdown.nonempty_line_count ?? 0)}
+                />
+                <Metric
+                  label="Comment Lines"
+                  value={String(result.codeBreakdown.comment_line_count ?? 0)}
                 />
                 <Metric
                   label="Comment Ratio"
-                  value={`${result.codeBreakdown.commentRatio}%`}
+                  value={`${((result.codeBreakdown.comment_line_ratio ?? 0) * 100).toFixed(1)}%`}
+                />
+                <Metric
+                  label="Average Line Length"
+                  value={String(result.codeBreakdown.average_line_length ?? 0)}
                 />
               </div>
 
               <div className="space-y-2">
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Style consistency</span>
-                  <span className="font-medium">
-                    {result.codeBreakdown.styleConsistency}%
-                  </span>
-                </div>
-                <Progress value={result.codeBreakdown.styleConsistency} />
-              </div>
-
-              {result.codeBreakdown.patternsFound.length > 0 && (
-                <div className="space-y-2">
-                  <h3 className="text-sm font-medium">Observed Patterns</h3>
+                <h3 className="text-sm font-medium">Repeated Lines</h3>
+                {Object.keys(result.codeBreakdown.repeated_lines ?? {}).length > 0 ? (
                   <ul className="space-y-2">
-                    {result.codeBreakdown.patternsFound.map((pattern, index) => (
-                      <li
-                        key={`${pattern}-${index}`}
-                        className="flex items-start gap-2 rounded-md border border-border bg-muted/20 p-3 text-sm"
-                      >
-                        <Code2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                        <span>{pattern}</span>
-                      </li>
-                    ))}
+                    {Object.entries(result.codeBreakdown.repeated_lines ?? {}).map(
+                      ([line, count]) => (
+                        <li
+                          key={line}
+                          className="rounded-md border border-border bg-muted/20 p-3 text-sm"
+                        >
+                          <code className="break-all">{line}</code>
+                          <span className="ml-2 text-muted-foreground">
+                            Repeated {count} times
+                          </span>
+                        </li>
+                      ),
+                    )}
                   </ul>
-                </div>
-              )}
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    No repeated non-empty lines were found.
+                  </p>
+                )}
+              </div>
             </CardContent>
           </Card>
         )}
 
-        {result.embeddingBreakdown && (
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <Cpu className="h-5 w-5 text-primary" />
-                <div>
-                  <CardTitle>Embedding Analysis</CardTitle>
-                  <CardDescription>
-                    Feature-space measurements from the selected representation model.
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-
-            <CardContent className="space-y-6">
-              <div className="grid gap-3 md:grid-cols-3">
-                <Metric
-                  label="Feature Dimension"
-                  value={`${result.embeddingBreakdown.featureDimension}D`}
-                />
-                <Metric
-                  label="Cosine Similarity"
-                  value={`${(result.embeddingBreakdown.cosineSimilarity * 100).toFixed(1)}%`}
-                />
-                <Metric
-                  label="Euclidean Distance"
-                  value={String(result.embeddingBreakdown.euclideanDistance)}
-                />
-              </div>
-
-              <div className="rounded-md border border-border p-3">
-                <p className="text-xs text-muted-foreground">Representation Model</p>
-                <p className="mt-1 break-words text-sm font-medium">
-                  {result.embeddingBreakdown.modelArchitecture}
-                </p>
-              </div>
-
-              {result.embeddingBreakdown.clusterDistributions.length > 0 && (
-                <div className="space-y-3">
-                  <h3 className="text-sm font-medium">Similarity by Reference Cluster</h3>
-                  {result.embeddingBreakdown.clusterDistributions.map((cluster, index) => (
-                    <div key={`${cluster.cluster}-${index}`} className="space-y-1">
-                      <div className="flex justify-between gap-3 text-xs">
-                        <span className="text-muted-foreground">{cluster.cluster}</span>
-                        <span className="font-medium tabular-nums">
-                          {(cluster.similarity * 100).toFixed(1)}%
-                        </span>
-                      </div>
-                      <Progress value={cluster.similarity * 100} />
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <p className="text-xs text-muted-foreground">
-                Similarity to a reference cluster does not independently establish
-                whether content was generated by a particular model or person.
-              </p>
-            </CardContent>
-          </Card>
-        )}
 
         {result.watermarkBreakdown && (
           <Card>
@@ -280,17 +285,23 @@ export default function ResultsPage() {
                   <div>
                     <CardTitle>Watermark and Provenance Analysis</CardTitle>
                     <CardDescription>
-                      Available watermark, content credential, and provenance findings.
+                      Inspection of supported watermark metadata and content credential markers.
                     </CardDescription>
                   </div>
                 </div>
 
                 {result.watermarkBreakdown.watermarkDetected ? (
-                  <Badge variant="destructive">Watermark Signal Detected</Badge>
-                ) : result.watermarkBreakdown.c2paSignatureValid ? (
-                  <Badge variant="default">C2PA Signature Valid</Badge>
+                  <Badge variant="destructive">
+                    Watermark-Related Signal Found
+                  </Badge>
+                ) : result.watermarkBreakdown.c2paMarkersFound ? (
+                  <Badge variant="secondary">
+                    C2PA-Related Marker Found
+                  </Badge>
                 ) : (
-                  <Badge variant="outline">No Supported Signal Found</Badge>
+                  <Badge variant="outline">
+                    No Supported Markers Found
+                  </Badge>
                 )}
               </div>
             </CardHeader>
@@ -301,35 +312,35 @@ export default function ResultsPage() {
                   title="Digital Watermark"
                   description={
                     result.watermarkBreakdown.watermarkType ||
-                    (result.watermarkBreakdown.watermarkDetected
-                      ? 'A watermark signal was reported.'
-                      : 'No supported watermark signal was reported.')
+                    'No supported watermark-related metadata signals were found. Invisible watermarks are not checked.'
                   }
-                  status={result.watermarkBreakdown.watermarkDetected ? 'found' : 'not-found'}
+                  status={
+                    result.watermarkBreakdown.watermarkDetected
+                      ? 'found'
+                      : 'not-found'
+                  }
                 />
 
                 <EvidenceItem
-                  title="C2PA Content Credentials"
+                  title="C2PA and Content Credential Markers"
                   description={
-                    result.watermarkBreakdown.c2paSignatureValid
-                      ? `Signature reported as valid${result.watermarkBreakdown.issuerOrg ? ` for ${result.watermarkBreakdown.issuerOrg}` : ''}.`
-                      : result.watermarkBreakdown.c2paManifestPresent
-                        ? 'A manifest is present, but its signature was not validated.'
-                        : 'No C2PA manifest was reported.'
+                    result.watermarkBreakdown.c2paMarkersFound
+                      ? 'C2PA-related marker strings were found. A valid manifest and signature have not been established.'
+                      : 'No supported C2PA-related marker strings were found. This does not prove that content credentials are absent.'
                   }
                   status={
-                    result.watermarkBreakdown.c2paSignatureValid
-                      ? 'found'
-                      : result.watermarkBreakdown.c2paManifestPresent
-                        ? 'warning'
-                        : 'not-found'
+                    result.watermarkBreakdown.c2paMarkersFound
+                      ? 'warning'
+                      : 'not-found'
                   }
                 />
               </div>
 
               {result.watermarkBreakdown.provenanceChain.length > 0 && (
                 <div className="space-y-2">
-                  <h3 className="text-sm font-medium">Reported Provenance Records</h3>
+                  <h3 className="text-sm font-medium">
+                    Reported Provenance Records
+                  </h3>
                   <div className="rounded-md border border-border p-3">
                     {result.watermarkBreakdown.provenanceChain.map((step, index) => (
                       <div
@@ -344,7 +355,9 @@ export default function ResultsPage() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2 pl-6 sm:pl-0">
-                          <span className="text-xs text-muted-foreground">{step.timestamp}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {step.timestamp}
+                          </span>
                           <Badge variant="outline">
                             {step.valid ? 'Verified' : 'Unsigned'}
                           </Badge>
@@ -356,8 +369,11 @@ export default function ResultsPage() {
               )}
 
               <p className="text-xs text-muted-foreground">
-                Absence of a watermark or provenance manifest does not establish that
-                content is original or unmodified.
+                This module inspects supported metadata and known marker strings only.
+                It does not classify AI-generated or human-created content, verify
+                cryptographic signatures, decode invisible watermarks, or establish
+                file authenticity. Absence of supported markers does not prove that
+                a file is original or unmodified.
               </p>
             </CardContent>
           </Card>
@@ -406,24 +422,26 @@ export default function ResultsPage() {
         )}
 
         <div className="flex flex-col gap-3 sm:flex-row">
-          <Button
-            onClick={handleSaveToHistory}
-            disabled={isSaving || isSaved}
-            className="flex-1"
-            variant={isSaved ? 'outline' : 'default'}
-          >
-            {isSaved ? (
-              <>
-                <CheckCircle2 className="mr-2 h-4 w-4" />
-                Saved to History
-              </>
-            ) : (
-              <>
-                <Save className="mr-2 h-4 w-4" />
-                {isSaving ? 'Saving…' : 'Save to History'}
-              </>
-            )}
-          </Button>
+          {!isAnalysisOnly && (
+            <Button
+              onClick={handleSaveToHistory}
+              disabled={isSaving || isSaved}
+              className="flex-1"
+              variant={isSaved ? 'outline' : 'default'}
+            >
+              {isSaved ? (
+                <>
+                  <CheckCircle2 className="mr-2 h-4 w-4" />
+                  Saved to History
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  {isSaving ? 'Saving…' : 'Save to History'}
+                </>
+              )}
+            </Button>
+          )}
 
           <Button
             onClick={() => navigate('/detection')}
@@ -434,6 +452,13 @@ export default function ResultsPage() {
             New Analysis
           </Button>
         </div>
+
+        {isAnalysisOnly && (
+          <p className="text-center text-xs text-muted-foreground">
+            History saving for analysis-only results will be enabled after
+            the history database supports unscored analysis records.
+          </p>
+        )}
       </main>
     </div>
   );
@@ -443,7 +468,9 @@ function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-md border border-border bg-muted/30 p-3">
       <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="mt-1 break-words text-lg font-semibold tabular-nums">{value}</p>
+      <p className="mt-1 break-words text-lg font-semibold tabular-nums">
+        {value}
+      </p>
     </div>
   );
 }
@@ -457,14 +484,17 @@ function EvidenceItem({
   description: string;
   status: 'found' | 'not-found' | 'warning';
 }) {
-  const Icon = status === 'found' ? Check : status === 'warning' ? AlertTriangle : X;
+  const Icon =
+    status === 'found' ? Check : status === 'warning' ? AlertTriangle : X;
 
   return (
     <div className="flex items-start gap-3 rounded-md border border-border bg-muted/20 p-3">
       <Icon className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
       <div>
         <p className="text-sm font-medium">{title}</p>
-        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{description}</p>
+        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+          {description}
+        </p>
       </div>
     </div>
   );

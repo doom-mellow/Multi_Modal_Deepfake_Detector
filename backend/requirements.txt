@@ -9,3 +9,9 @@ opencv-python-headless==4.10.0.84
 torch==2.8.0
 torchvision==0.23.0
 scikit-learn>=1.5,<2.0
+miniaudio==1.71
+# Add to backend/requirements.txt
+transformers>=4.41,<5
+
+# Optional, only for extra watermark checks (see notes):
+# invisible-watermark      # Stable Diffusion invisible watermark; if pip complains about OpenCV, use: pip install invisible-watermark --no-deps pywavelets

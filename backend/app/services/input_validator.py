@@ -30,22 +30,15 @@ async def validate_detection_input(
             )
 
     elif media_type in {"image", "video"}:
-        if file is None and not url:
+        if file is None:
             raise HTTPException(
                 status_code=400,
-                detail=f"A file or URL is required for {media_type} analysis.",
-            )
-
-    elif media_type == "embedding":
-        if file is None and not (content and content.strip()):
-            raise HTTPException(
-                status_code=400,
-                detail="A file or text input is required for embedding analysis.",
+                detail=f"An uploaded file is required for {media_type} analysis.",
             )
 
     elif media_type == "watermark":
-        if file is None and not url:
+        if file is None:
             raise HTTPException(
                 status_code=400,
-                detail="A file or URL is required for watermark analysis.",
+                detail="An uploaded file is required for watermark analysis.",
             )

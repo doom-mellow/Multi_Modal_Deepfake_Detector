@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "watermark-forensics"
+version = "0.1.0"
+description = "Independent forensic detectors and provenance verification for watermark-bearing media."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+  "torch>=2.2",
+  "numpy>=1.24",
+  "Pillow>=10",
+  "scipy>=1.10",
+]
+
+[project.optional-dependencies]
+audio = ["audioseal==0.2.1"]
+video = ["videoseal==1.0.1"]
+c2pa = ["c2pa-python==0.39.0"]
+all = ["audioseal==0.2.1", "videoseal==1.0.1", "c2pa-python==0.39.0"]
+test = ["pytest>=8"]
+
+[project.scripts]
+wmforensics = "wmforensics.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+outputs/
+checkpoints/
+data/
+*.pt
+*.pth
+*.wav
+*.mp4
+*.png
+*.jpg
+*.jpeg

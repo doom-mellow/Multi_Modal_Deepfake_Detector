@@ -10,7 +10,6 @@ class DetectionResponse(BaseModel):
     indicators: list[str] = Field(default_factory=list)
 
     codeBreakdown: dict | None = None
-    embeddingBreakdown: dict | None = None
     watermarkBreakdown: dict | None = None
 
 

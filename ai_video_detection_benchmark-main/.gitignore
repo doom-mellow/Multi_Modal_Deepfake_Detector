@@ -1,0 +1,39 @@
+# Diger acik kaynak modeller (ayri public repolar, referans icin README'de link var)
+other_models/
+
+# Checkpoint ve model agirliklari
+checkpoints/
+*.pt
+*.pth
+*.ckpt
+
+# Datasetler ve manifestler (path/label listeleri de dahil)
+datasets/
+*.jsonl
+*.parquet
+*.mp4
+*.avi
+manifest_*.csv
+
+# Istisna: results/ altindaki kucuk skor dosyalari yayinlanan analiz ciktisi,
+# ham dataset degil - README'de belgelendigi icin pushlaniyor
+!results/phase2/scores/*.jsonl
+
+# Python cache / sanal ortamlar
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# Log ve gecici dosyalar
+*.log
+*.tmp
+runs/
+
+# Claude Code proje-ozel dosyalari (ic sunucu bilgisi icerebilir)
+.claude/
+.claudeignore
+CLAUDE.md
+refactor_paths.py
